@@ -4,5 +4,6 @@
   "minimum_supported_version": "0.8.4",
   "release_date": "2026-09-08",
   "channel": "beta",
+  "stale_after_days": 14,
   "message": ""
 }
