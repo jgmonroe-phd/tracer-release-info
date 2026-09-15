@@ -1,0 +1,92 @@
+name: Publish release catalog
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  release:
+    types: [published, edited, deleted, unpublished]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+# Release events only dispatch a run on main. Publishing runs are serialized.
+concurrency:
+  group: release-catalog-${{ github.event_name == 'release' && github.run_id || github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  request-sync:
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: read
+    steps:
+      - name: Run the current catalog workflow on main
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run release-catalog.yml --repo "$GITHUB_REPOSITORY" --ref main
+
+  validate:
+    if: github.event_name != 'release'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Test release synchronization
+        run: python3 -m unittest discover -s tests -v
+
+  publish:
+    needs: validate
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+      - name: Test the main revision being published
+        run: python3 -m unittest discover -s tests -v
+      - name: Check Pages configuration
+        uses: actions/configure-pages@v5
+      - name: Read all releases and update the manifests
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api --paginate --slurp \
+            "repos/$GITHUB_REPOSITORY/releases?per_page=100" \
+            | jq 'add // []' > "$RUNNER_TEMP/tracer-releases.json"
+          python3 scripts/sync_releases.py \
+            --releases "$RUNNER_TEMP/tracer-releases.json" \
+            --repository "$GITHUB_REPOSITORY"
+      - name: Commit changed metadata
+        run: |
+          git add version.json executables.json README.md
+          if ! git diff --cached --quiet; then
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git commit -m 'Update executable release catalog'
+            git push origin HEAD:main
+          fi
+      - name: Prepare public files
+        run: |
+          mkdir -p _site
+          cp version.json executables.json index.html _site/
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+      - name: Publish GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
