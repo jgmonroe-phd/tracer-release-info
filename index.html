@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Download TRACER, find the right version for your computer, and get started.">
+    <meta name="color-scheme" content="light">
+    <title>Download TRACER</title>
+    <style>
+      :root { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #172b3b; background: #f4f7f8; font-synthesis: none; }
+      * { box-sizing: border-box; }
+      body { margin: 0; font-size: 1rem; line-height: 1.6; }
+      a { color: #125d75; text-underline-offset: .2em; }
+      a:hover { color: #0a3d4d; }
+      a:focus-visible { outline: 3px solid #b45b00; outline-offset: 5px; border-radius: 3px; }
+      [hidden] { display: none !important; }
+      .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+      .shell { width: min(100% - 3rem, 65rem); margin-inline: auto; }
+      .skip-link { position: absolute; left: 1rem; top: -5rem; padding: .6rem 1rem; background: white; z-index: 1; }
+      .skip-link:focus { top: 1rem; }
+      header { border-bottom: 1px solid #dce4e8; }
+      .header-row { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; padding-block: 1.4rem; }
+      .brand { display: flex; align-items: center; gap: .7rem; color: #172b3b; font-size: 1.05rem; font-weight: 800; letter-spacing: .14em; }
+      .brand-mark { width: 1.7rem; height: 1.7rem; color: #14788a; }
+      .header-link { font-size: .9rem; }
+      main { padding-block: 4.5rem 4rem; }
+      .eyebrow { margin: 0 0 .7rem; color: #486674; font-size: .75rem; font-weight: 750; letter-spacing: .14em; text-transform: uppercase; }
+      h1 { margin: 0; font-size: clamp(2.5rem, 6vw, 4rem); line-height: 1.1; letter-spacing: -.055em; font-weight: 750; }
+      .intro { max-width: 38rem; margin: 1.2rem 0 2.5rem; color: #50616d; font-size: 1.1rem; }
+      .download-card { padding: clamp(1.5rem, 4vw, 2.5rem); background: #fff; border: 1px solid #dce4e8; border-top: 4px solid #14788a; border-radius: 14px; box-shadow: 0 12px 32px #172b3b06; }
+      .release-label { display: inline-block; padding: .3rem .65rem; margin: 0 0 1.1rem; border-radius: 5px; background: #e6f3f2; color: #155c59; font-size: .75rem; font-weight: 750; letter-spacing: .04em; }
+      h2 { margin: 0 0 .6rem; font-size: 1.55rem; line-height: 1.3; letter-spacing: -.025em; }
+      h3 { margin: 0 0 .4rem; font-size: 1.05rem; line-height: 1.4; }
+      p { margin-top: 0; }
+      .muted { color: #50616d; }
+      .download-row { display: flex; justify-content: space-between; align-items: center; gap: 2rem; }
+      .release-meta { margin: 0 0 .4rem; color: #50616d; }
+      .file-meta { margin: 0; color: #586c78; font-size: .85rem; overflow-wrap: anywhere; }
+      .button { display: inline-flex; align-items: center; justify-content: center; gap: .6rem; padding: .95rem 1.25rem; border-radius: 7px; background: #126778; color: white; font-weight: 700; text-decoration: none; text-align: center; line-height: 1.4; }
+      .button:hover { background: #0e5160; color: white; }
+      .download-action { flex: 0 1 22rem; text-align: center; }
+      .download-action .button { width: 100%; }
+      .beta-note { margin: 1.5rem 0 0; padding-top: 1rem; border-top: 1px solid #e5ecef; font-size: .9rem; color: #50616d; }
+      .release-links { display: flex; flex-wrap: wrap; gap: .75rem 1.5rem; margin-top: 1.2rem; font-size: .9rem; }
+      .other-builds { margin-top: 1.75rem; padding-top: 1.5rem; border-top: 1px solid #e5ecef; }
+      .other-builds ul { list-style: none; margin: .6rem 0 0; padding: 0; }
+      .other-builds li { display: flex; justify-content: space-between; flex-wrap: wrap; gap: .25rem 1rem; padding-block: .65rem; }
+      .other-builds li + li { border-top: 1px solid #eef2f4; }
+      .other-builds small { color: #586c78; overflow-wrap: anywhere; }
+      .help-grid { display: grid; grid-template-columns: 1.65fr 1fr; gap: 3rem; margin-top: 3rem; }
+      .help-grid h2 { font-size: 1.25rem; }
+      .steps { list-style: none; counter-reset: step; padding: 0; margin: 1.5rem 0 0; }
+      .steps li { position: relative; counter-increment: step; padding-left: 3rem; margin-bottom: 1.6rem; }
+      .steps li::before { content: counter(step); position: absolute; left: 0; top: -.1rem; display: grid; place-items: center; width: 2rem; height: 2rem; background: #e1ebee; color: #315865; border-radius: 50%; font-size: .85rem; font-weight: 750; }
+      .steps p { color: #50616d; margin: 0; font-size: .95rem; }
+      .help-panel { padding-left: 2rem; border-left: 1px solid #dce4e8; }
+      .help-panel p { color: #50616d; font-size: .95rem; }
+      .help-panel h3:not(:first-child) { margin-top: 1.5rem; }
+      .file-name { font-weight: 650; overflow-wrap: anywhere; }
+      footer { border-top: 1px solid #dce4e8; }
+      .footer-row { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .6rem 2rem; padding-block: 1.4rem; color: #586c78; font-size: .8rem; }
+      .footer-row p { margin: 0; }
+      .error-copy { max-width: 42rem; margin-bottom: 1.25rem; }
+      noscript p { padding: 1rem; background: #fff; border: 1px solid #dce4e8; border-radius: 7px; }
+      @media (max-width: 700px) {
+        main { padding-block: 3rem; }
+        .download-row { flex-direction: column; align-items: stretch; gap: 1.5rem; }
+        .download-action { flex-basis: auto; }
+        .help-grid { grid-template-columns: 1fr; gap: 1rem; }
+        .help-panel { padding: 1.5rem 0 0; border-left: 0; border-top: 1px solid #dce4e8; }
+      }
+      @media (max-width: 400px) { .shell { width: calc(100% - 2rem); } .header-link { font-size: .8rem; } }
+    </style>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to downloads</a>
+    <header>
+      <div class="shell header-row">
+        <div class="brand">
+          <svg class="brand-mark" viewBox="0 0 28 28" fill="none" aria-hidden="true"><path d="M3 7h22M14 7v18M7 3v8M21 3v8" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
+          TRACER
+        </div>
+        <a class="header-link" href="https://github.com/jgmonroe-phd/tracer-release-info/releases">All releases &amp; notes</a>
+      </div>
+    </header>
+    <main id="main" class="shell">
+      <p class="eyebrow">Application downloads</p>
+      <h1>Download TRACER</h1>
+      <p class="intro">Find the right download for your computer and follow the steps below to get started.</p>
+
+      <section class="download-card" aria-labelledby="download-heading" aria-busy="true" id="download-card">
+        <div id="download-status" role="status" aria-live="polite">
+          <h2 id="download-heading">Finding available downloads…</h2>
+          <p class="muted">Checking the recommended version of TRACER.</p>
+        </div>
+        <div id="download-content" hidden></div>
+      </section>
+      <noscript><p>To see available files, open <a href="https://github.com/jgmonroe-phd/tracer-release-info/releases">TRACER Releases</a> and expand <strong>Assets</strong> under a release. Choose the TRACER download for your computer; the source code archives are for developers.</p></noscript>
+
+      <div class="help-grid" id="windows-help" hidden>
+        <section aria-labelledby="steps-heading">
+          <h2 id="steps-heading">Get started on Windows</h2>
+          <ol class="steps">
+            <li><h3>Download the ZIP file</h3><p>Use the Windows download above and save it somewhere easy to find, such as your Downloads folder.</p></li>
+            <li><h3>Extract the files</h3><p>Right-click the downloaded ZIP file, select <strong>Extract All…</strong>, and choose <strong>Extract</strong>.</p></li>
+            <li><h3>Open TRACER</h3><p>In the extracted folder, open the TRACER <span class="file-name">.exe</span> file. Open it from this folder after extraction.</p></li>
+          </ol>
+        </section>
+        <aside class="help-panel" aria-label="Download help">
+          <h3>Which computer is this for?</h3>
+          <p id="compatibility-copy">Choose a build that matches your operating system and processor.</p>
+          <h3>Already using TRACER?</h3>
+          <p>Compare your app’s version with the recommended version above. Read the release notes before updating.</p>
+          <h3>Looking at GitHub’s Assets list?</h3>
+          <p>Choose the TRACER ZIP file. The “Source code” archives are for developers.</p>
+        </aside>
+      </div>
+    </main>
+    <footer>
+      <div class="shell footer-row">
+        <p>TRACER · Downloads &amp; release information</p>
+        <a href="https://github.com/jgmonroe-phd/tracer-release-info#readme">Help &amp; maintainer guide</a>
+      </div>
+    </footer>
+    <script>
+      "use strict";
+      const RELEASES_URL = "https://github.com/jgmonroe-phd/tracer-release-info/releases";
+      const RELEASE_PATH = "/jgmonroe-phd/tracer-release-info/releases/";
+      const card = document.getElementById("download-card");
+      const status = document.getElementById("download-status");
+      const content = document.getElementById("download-content");
+
+      function element(tag, text, className) {
+        const node = document.createElement(tag);
+        if (text !== undefined) node.textContent = text;
+        if (className) node.className = className;
+        return node;
+      }
+
+      function safeReleaseUrl(value, assetName) {
+        if (typeof value !== "string") return null;
+        try {
+          const url = new URL(value);
+          if (url.protocol !== "https:" || url.hostname !== "github.com" || url.port ||
+              url.username || url.password || url.search || url.hash) return null;
+          const prefix = RELEASE_PATH + (assetName === undefined ? "tag/" : "download/");
+          if (!url.pathname.startsWith(prefix)) return null;
+          const parts = url.pathname.slice(prefix.length).split("/").map(decodeURIComponent);
+          if (parts.length !== (assetName === undefined ? 1 : 2) ||
+              parts.some(part => !part || part === "." || part === ".." || /[/\\\u0000-\u001f\u007f]/.test(part))) return null;
+          if (assetName !== undefined && parts[1] !== assetName) return null;
+          return url.href;
+        } catch { return null; }
+      }
+
+      function fileSize(bytes) {
+        if (!Number.isSafeInteger(bytes) || bytes <= 0) return "Size not specified";
+        if (bytes < 1024) return bytes + " bytes";
+        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KiB";
+        return (bytes / (1024 * 1024)).toFixed(1) + " MiB";
+      }
+
+      function platformLabel(file) {
+        const platforms = { windows: "Windows", macos: "macOS", linux: "Linux" };
+        const architectures = { x64: "64-bit", x86: "32-bit", arm64: "ARM64", universal: "Universal" };
+        const platform = ["windows", "macos", "linux"].includes(file.platform) ? platforms[file.platform] : null;
+        if (!platform) return "Platform not specified";
+        return platform + (["x64", "x86", "arm64", "universal"].includes(file.architecture) ? " (" + architectures[file.architecture] + ")" : " — processor not specified");
+      }
+
+      function buildRank(file) {
+        const platform = new Map([["windows", 0], ["macos", 100], ["linux", 200]]).get(file.platform) ?? 300;
+        const architecture = new Map([["universal", 0], ["x64", 1], ["arm64", 10], ["x86", 20]]).get(file.architecture) ?? 30;
+        return platform + architecture + (file.name.toLowerCase().endsWith(".zip") ? 0 : 1);
+      }
+
+      function availableFiles(release) {
+        if (!Array.isArray(release.files)) return [];
+        const files = release.files.filter(file => file && typeof file === "object" &&
+          typeof file.name === "string" && file.name.trim() && safeReleaseUrl(file.url, file.name));
+        files.sort((a, b) => buildRank(a) - buildRank(b) || a.name.localeCompare(b.name));
+        const seen = new Set();
+        return files.filter(file => {
+          // Keep one clear choice for each verified platform and processor. ZIP wins.
+          const key = ["windows", "macos", "linux"].includes(file.platform) && ["x64", "x86", "arm64", "universal"].includes(file.architecture)
+            ? file.platform + "/" + file.architecture : file.url;
+          if (seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
+      }
+
+      function showUnavailable(title, description) {
+        status.replaceChildren();
+        status.className = "";
+        content.replaceChildren();
+        document.getElementById("windows-help").hidden = true;
+        const heading = element("h2", title);
+        heading.id = "download-heading";
+        const link = element("a", "View TRACER Releases", "button");
+        link.href = RELEASES_URL;
+        status.append(heading, element("p", description, "muted error-copy"), link);
+        content.hidden = true;
+        status.hidden = false;
+        card.setAttribute("aria-busy", "false");
+      }
+
+      function downloadLink(file, primary) {
+        const known = ["windows", "macos", "linux"].includes(file.platform);
+        const label = known ? "Download for " + platformLabel(file) : "Download " + file.name;
+        const link = element("a", label, primary ? "button" : "");
+        link.href = safeReleaseUrl(file.url, file.name);
+        return link;
+      }
+
+      function showRelease(release, files) {
+        content.replaceChildren();
+        document.getElementById("windows-help").hidden = true;
+        const primary = files[0];
+        const label = element("p", "RECOMMENDED RELEASE", "release-label");
+        const row = element("div", undefined, "download-row");
+        const details = element("div");
+        const heading = element("h2", platformLabel(primary));
+        heading.id = "download-heading";
+        const version = "Version " + release.version + " · " + (release.channel === "beta" ? "Beta" : "Stable");
+        details.append(heading, element("p", version, "release-meta"), element("p", primary.name + " · " + fileSize(primary.size_bytes), "file-meta"));
+        const action = element("div", undefined, "download-action");
+        action.append(downloadLink(primary, true));
+        row.append(details, action);
+        content.append(label, row);
+        if (release.channel === "beta") content.append(element("p", "Beta release: this version is still being tested. Review the release notes for known issues and changes.", "beta-note"));
+        const links = element("div", undefined, "release-links");
+        const notes = element("a", "Read release notes");
+        notes.href = safeReleaseUrl(release.release_url) || RELEASES_URL;
+        const all = element("a", "Older releases & all files");
+        all.href = RELEASES_URL;
+        links.append(notes, all);
+        content.append(links);
+        if (files.length > 1) {
+          const other = element("section", undefined, "other-builds");
+          other.append(element("h3", "Other downloads for this version"));
+          const list = element("ul");
+          for (const file of files.slice(1)) {
+            const item = element("li");
+            item.append(downloadLink(file, false), element("small", file.name + " · " + fileSize(file.size_bytes) +
+              (!["windows", "macos", "linux"].includes(file.platform) ? " · Platform not specified" : "")));
+            list.append(item);
+          }
+          other.append(list);
+          content.append(other);
+        }
+        const windowsZip = files.find(file => file.platform === "windows" && file.name.toLowerCase().endsWith(".zip"));
+        if (windowsZip) {
+          document.getElementById("windows-help").hidden = false;
+          const message = windowsZip.architecture === "x64"
+            ? "The Windows (64-bit) download is for Windows computers with an x64 processor. To check, open Settings → System → About and look for System type."
+            : "Match the Windows download to your processor. To check, open Settings → System → About and look for System type.";
+          document.getElementById("compatibility-copy").textContent = message;
+        }
+        status.replaceChildren(element("p", version + " is available for download."));
+        status.className = "sr-only";
+        status.hidden = false;
+        content.hidden = false;
+        card.setAttribute("aria-busy", "false");
+      }
+
+      async function loadDownloads() {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 12000);
+        try {
+          const [manifest, catalog] = await Promise.all(["version.json", "executables.json"].map(async path => {
+            const response = await fetch(path, { cache: "no-store", signal: controller.signal });
+            if (!response.ok) throw new Error("Download information unavailable");
+            return response.json();
+          }));
+          if (!manifest || !catalog || !Array.isArray(catalog.releases) ||
+              typeof manifest.latest_version !== "string" || !/^\d+\.\d+\.\d+$/.test(manifest.latest_version) ||
+              !["stable", "beta"].includes(manifest.channel)) throw new Error("Download information incomplete");
+          const matching = catalog.releases.filter(release => release && release.version === manifest.latest_version &&
+            ["stable", "beta"].includes(release.channel) && (manifest.channel === "beta" || release.channel === "stable"));
+          matching.sort((a, b) => Number(a.channel !== "stable") - Number(b.channel !== "stable"));
+          const release = matching.find(item => availableFiles(item).length > 0);
+          if (!release) {
+            showUnavailable("The recommended download is not available yet", "Version " + manifest.latest_version +
+              " is recommended, but its download is not listed here yet. Check TRACER Releases for available files and release notes.");
+            return;
+          }
+          showRelease(release, availableFiles(release));
+        } catch {
+          showUnavailable("We couldn’t load the download list", "You can still check TRACER Releases for available downloads. Expand Assets under a release and choose the TRACER file for your computer.");
+        } finally {
+          clearTimeout(timeout);
+        }
+      }
+
+      loadDownloads();
+    </script>
+  </body>
+</html>
