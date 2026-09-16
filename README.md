@@ -10,11 +10,9 @@ The first TRACER package is for **64-bit Windows (Intel or AMD)**. A Mac, Linux,
 
 <!-- downloads:start -->
 
-Recommended version: **0.8.8** (stable).
+Recommended version: **0.9.4** (beta).
 
-| Platform | File | Size | Version |
-| --- | --- | --- | --- |
-| Platform not specified | [TRACER\_v0\.8\.8\.exe](https://github.com/jgmonroe-phd/tracer-release-info/releases/download/v0.8.8/TRACER_v0.8.8.exe) | 60.3 MiB | 0.8.8 |
+No public download is available yet for this recommended version.
 
 [All releases](https://github.com/jgmonroe-phd/tracer-release-info/releases)
 
