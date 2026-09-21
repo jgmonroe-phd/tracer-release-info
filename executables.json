@@ -2,6 +2,22 @@
   "product": "TRACER",
   "releases": [
     {
+      "version": "0.9.10",
+      "channel": "stable",
+      "release_date": "2026-09-21",
+      "release_url": "https://github.com/jgmonroe-phd/tracer-release-info/releases/tag/v0.9.10",
+      "files": [
+        {
+          "name": "TRACER_v0.9.10.exe",
+          "url": "https://github.com/jgmonroe-phd/tracer-release-info/releases/download/v0.9.10/TRACER_v0.9.10.exe",
+          "size_bytes": 63541567,
+          "sha256": "7c97d3b07c48a337b56b1e60fdc2160fbd146e97ab2d566513e0a4d32313db61",
+          "platform": null,
+          "architecture": null
+        }
+      ]
+    },
+    {
       "version": "0.9.9",
       "channel": "stable",
       "release_date": "2026-09-21",
