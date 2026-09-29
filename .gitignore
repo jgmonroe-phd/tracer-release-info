@@ -1,2 +1,4 @@
 __pycache__/
-_site/
+*.py[cod]
+*.sqlite3
+*.sqlite3-*

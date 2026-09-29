@@ -12,6 +12,11 @@ import re
 import sys
 from urllib.parse import quote, unquote, urlsplit
 
+try:
+    from validate_policy import MAX_POLICY_BYTES, load_policy, validate_policy
+except ModuleNotFoundError:
+    from scripts.validate_policy import MAX_POLICY_BYTES, load_policy, validate_policy
+
 
 ROOT = Path(__file__).resolve().parents[1]
 VERSION = re.compile(r"(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\Z")
@@ -136,6 +141,7 @@ def build_metadata(manifest, releases, repository, platform_rules=None):
     validate_platform_rules(platform_rules)
     if not isinstance(manifest, dict):
         raise ValueError("version.json must contain a JSON object")
+    validate_policy(manifest)
     product = manifest.get("product")
     if not isinstance(product, str) or not product.strip():
         raise ValueError("version.json product must be a nonempty string")
@@ -188,6 +194,7 @@ def build_metadata(manifest, releases, repository, platform_rules=None):
     if eligible and parse_version(eligible[0]["version"]) > current:
         updated["latest_version"] = eligible[0]["version"]
         updated["release_date"] = eligible[0]["release_date"]
+    validate_policy(updated)
     return updated, {"product": product, "releases": catalog}
 
 
@@ -257,20 +264,22 @@ def main(argv=None):
         if len({path.resolve() for path in (args.manifest, args.catalog, args.readme)}) != 3:
             raise ValueError("manifest, catalog, and README output paths must be different")
         releases = json.loads(args.releases.read_text(encoding="utf-8"))
-        manifest = json.loads(args.manifest.read_text(encoding="utf-8"))
+        manifest = load_policy(args.manifest)
         platform_rules = json.loads(args.platforms.read_text(encoding="utf-8"))
         readme = args.readme.read_bytes().decode("utf-8")
         updated, catalog = build_metadata(manifest, releases, args.repository, platform_rules)
         updated_readme = render_downloads(readme, updated, catalog, args.repository)
         # Validate and serialize all documents before touching any output.
         manifest_text = json.dumps(updated, indent=2, ensure_ascii=False) + "\n"
+        if len(manifest_text.encode("utf-8")) > MAX_POLICY_BYTES:
+            raise ValueError("serialized version.json exceeds 64 KiB")
         catalog_text = json.dumps(catalog, indent=2, ensure_ascii=False) + "\n"
         args.catalog.write_text(catalog_text, encoding="utf-8")
         if updated_readme != readme:
             args.readme.write_bytes(updated_readme.encode("utf-8"))
         if updated != manifest:
             args.manifest.write_text(manifest_text, encoding="utf-8")
-    except (OSError, ValueError) as error:
+    except (OSError, ValueError, RecursionError) as error:
         print(f"sync_releases: {error}", file=sys.stderr)
         return 1
     print(f"Catalog contains {len(catalog['releases'])} releases; latest version: {updated['latest_version']}")

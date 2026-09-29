@@ -5,5 +5,12 @@
   "release_date": "2026-09-21",
   "channel": "beta",
   "stale_after_days": 14,
-  "message": ""
+  "message": "",
+  "schema_version": 2,
+  "warning_below_version": "0.9.10",
+  "blocked_below_version": "0.8.8",
+  "blocked_versions": [],
+  "warning_message": "This TRACER version is nearing retirement. Update to the recommended release.",
+  "blocked_message": "This TRACER version is no longer permitted. Download and install the recommended release before continuing.",
+  "usage_endpoint": null
 }

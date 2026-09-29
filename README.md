@@ -32,7 +32,7 @@ If you browse GitHub's release page, choose the named TRACER download under **As
 
 ## How do I know when to update?
 
-TRACER can check for a newer version when it runs. If it reports that an update is available, return to this page and get the recommended download.
+TRACER checks release policy when it runs. Enforcement-capable builds require internet and authenticated GenAI access. A version may first show an update warning and later stop until it is updated. If an update is required, return to this page and get the recommended download. Older builds retain their original behavior until replaced.
 
 Close TRACER before opening the new version. Keep your documents and other working files when replacing an older copy of the application.
 
@@ -46,4 +46,4 @@ If Windows or your organization blocks the application, contact your IT team or 
 
 ---
 
-Publishing a new build? See the [maintainer guide](docs/maintainers.md).
+Publishing a new build? See the [maintainer guide](docs/maintainers.md), [warning/blocking policy](docs/release-policy.md), and [usage counts](docs/usage-service.md).
