@@ -24,6 +24,10 @@ def manifest(channel="beta"):
         "minimum_supported_version": "0.8.6", "release_date": "2026-09-14",
         "channel": channel, "stale_after_days": 14, "message": "Keep this message.",
         "future_field": {"preserved": True},
+        "schema_version": 2, "warning_below_version": "0.8.8",
+        "blocked_below_version": "0.8.6", "blocked_versions": ["0.8.7"],
+        "warning_message": "Update soon.", "blocked_message": "Update required.",
+        "usage_endpoint": None,
     }
 
 
@@ -245,6 +249,33 @@ class MetadataTests(unittest.TestCase):
             self.assertIn("README", result.stderr)
             for name, contents in inputs.items():
                 self.assertEqual((root / name).read_text(encoding="utf-8"), contents)
+
+    def test_duplicate_and_oversized_serialized_policy_never_touch_outputs(self):
+        valid = json.dumps(manifest())
+        candidates = [
+            '{"schema_version":1,' + valid[1:],
+            json.dumps(manifest() | {"future": [0] * 10000}, separators=(",", ":")),
+        ]
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            for raw in candidates:
+                inputs = {
+                    "version.json": raw, "executables.json": '{"original": true}\n',
+                    "releases.json": json.dumps([release()]), "README.md": README,
+                    "download-platforms.json": "[]",
+                }
+                for name, contents in inputs.items():
+                    (root / name).write_text(contents, encoding="utf-8")
+                result = subprocess.run([
+                    sys.executable, str(SCRIPT), "--repository", REPOSITORY,
+                    "--releases", str(root / "releases.json"), "--manifest", str(root / "version.json"),
+                    "--catalog", str(root / "executables.json"), "--readme", str(root / "README.md"),
+                    "--platforms", str(root / "download-platforms.json"),
+                ], capture_output=True, text=True)
+                self.assertEqual(result.returncode, 1)
+                self.assertIn("sync_releases:", result.stderr)
+                for name, contents in inputs.items():
+                    self.assertEqual((root / name).read_text(encoding="utf-8"), contents)
 
 
 if __name__ == "__main__":

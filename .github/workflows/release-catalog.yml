@@ -39,6 +39,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+      - name: Validate warning and blocking policy
+        run: python3 scripts/validate_policy.py
       - name: Test release synchronization
         run: python3 -m unittest discover -s tests -v
 
@@ -58,7 +60,9 @@ jobs:
         with:
           ref: main
       - name: Test the main revision being published
-        run: python3 -m unittest discover -s tests -v
+        run: |
+          python3 scripts/validate_policy.py
+          python3 -m unittest discover -s tests -v
       - name: Check Pages configuration
         uses: actions/configure-pages@v5
       - name: Read all releases and update the manifests
@@ -83,7 +87,7 @@ jobs:
       - name: Prepare public files
         run: |
           mkdir -p _site
-          cp version.json executables.json index.html _site/
+          cp version.json version.schema.json executables.json index.html _site/
       - uses: actions/upload-pages-artifact@v4
         with:
           path: _site

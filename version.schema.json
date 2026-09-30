@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://jgmonroe-phd.github.io/tracer-release-info/version.schema.json",
+  "title": "TRACER release policy schema 2",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": 2
+    },
+    "product": {
+      "const": "TRACER"
+    },
+    "latest_version": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$",
+      "maxLength": 32
+    },
+    "minimum_supported_version": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$",
+      "maxLength": 32
+    },
+    "warning_below_version": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$",
+      "maxLength": 32
+    },
+    "blocked_below_version": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$",
+      "maxLength": 32
+    },
+    "blocked_versions": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$",
+        "maxLength": 32
+      },
+      "maxItems": 100,
+      "uniqueItems": true
+    },
+    "warning_message": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1000
+    },
+    "blocked_message": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1000
+    },
+    "message": {
+      "type": "string",
+      "maxLength": 1000
+    },
+    "release_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "channel": {
+      "enum": [
+        "beta",
+        "stable"
+      ]
+    },
+    "stale_after_days": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 365
+    },
+    "usage_endpoint": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https://",
+          "maxLength": 2048
+        }
+      ]
+    }
+  },
+  "required": [
+    "schema_version",
+    "product",
+    "latest_version",
+    "minimum_supported_version",
+    "warning_below_version",
+    "blocked_below_version",
+    "blocked_versions",
+    "warning_message",
+    "blocked_message",
+    "message",
+    "release_date",
+    "channel",
+    "stale_after_days",
+    "usage_endpoint"
+  ],
+  "additionalProperties": true,
+  "$comment": "scripts/validate_policy.py also enforces numeric ordering, floor equality, plain messages, and HTTPS endpoint restrictions."
+}

@@ -6,7 +6,7 @@ This document covers publishing TRACER releases and maintaining the update servi
 
 TRACER source code is maintained in a private repository on an internal server. Public executables belong in this repository's [GitHub Releases](https://github.com/jgmonroe-phd/tracer-release-info/releases), attached to a versioned release. Keep the binary files out of the Git file history.
 
-Installed copies of TRACER continue to query the same public `version.json` URL. A separate `executables.json` lists the available release assets without changing the existing version manifest's schema.
+Installed copies of TRACER continue to query the same public `version.json` URL. A separate `executables.json` lists the available release assets. The version manifest now uses schema 2 with additive warning, blocking, and optional usage fields. Older clients keep their original advisory behavior; they do not acquire enforcement from this repository alone.
 
 ## One-time Setup
 
@@ -18,168 +18,13 @@ Installed copies of TRACER continue to query the same public `version.json` URL.
 
 GitHub Pages can retain its default environment restriction allowing deployments only from `main`: release events dispatch a fresh workflow run on `main` before publishing. No additional personal access token is needed with the default repository permissions.
 
-## Public Version Manifest
+## Version policy and usage counts
 
-TRACER checks:
+TRACER checks `https://jgmonroe-phd.github.io/tracer-release-info/version.json`.
 
-```text
-https://jgmonroe-phd.github.io/tracer-release-info/version.json
-```
+See [release policy and staged retirement](release-policy.md) for the schema, exact version boundaries, deployment order, and the limits of retiring legacy binaries. The checked-in manifest keeps `latest_version` at **0.9.10**, warning below **0.9.10**, blocking below **0.8.8**, and `usage_endpoint` at **null**. Publishing this change does not claim a 0.9.11 binary exists or that a counter has been deployed.
 
-The file is published through GitHub Pages.
-
-A typical `version.json` looks like:
-
-```json
-{
-  "product": "TRACER",
-  "latest_version": "0.8.5",
-  "minimum_supported_version": "0.8.4",
-  "release_date": "2026-09-08",
-  "channel": "beta",
-  "stale_after_days": 14,
-  "message": ""
-}
-```
-
-## Fields
-
-### `product`
-
-Identifies the application.
-
-```json
-"product": "TRACER"
-```
-
-This should normally never need to change.
-
-### `latest_version`
-
-The most recent TRACER version that users should be running.
-
-```json
-"latest_version": "0.8.5"
-```
-
-When an installed copy of TRACER has a lower version, the application can display an update-available warning.
-
-Use normal semantic version numbering:
-
-```text
-major.minor.patch
-```
-
-Examples:
-
-```text
-0.8.4
-0.8.5
-0.9.0
-1.0.0
-```
-
-Do not compare or order versions manually as strings in TRACER code. The application uses semantic version comparison.
-
-### `minimum_supported_version`
-
-The oldest version that should still be considered supported.
-
-```json
-"minimum_supported_version": "0.8.4"
-```
-
-This is different from `latest_version`.
-
-For example:
-
-```json
-"latest_version": "0.8.7",
-"minimum_supported_version": "0.8.5"
-```
-
-means:
-
-* 0.8.7 is current.
-* 0.8.6 should be encouraged to update, but is still supported.
-* 0.8.5 should be encouraged to update, but is still supported.
-* 0.8.4 and older should receive a stronger unsupported/outdated warning.
-
-Do not raise `minimum_supported_version` just because a newer release exists. Raise it when there is a meaningful reason that older releases should no longer be used, such as a significant bug, compatibility issue, or workflow change.
-
-### `release_date`
-
-The release date of `latest_version`.
-
-```json
-"release_date": "2026-09-08"
-```
-
-Use ISO format:
-
-```text
-YYYY-MM-DD
-```
-
-This is primarily informational and can also help diagnose release/version mismatches.
-
-### `channel`
-
-Describes the maturity of the current release series.
-
-During active development:
-
-```json
-"channel": "beta"
-```
-
-A future stable release may use:
-
-```json
-"channel": "stable"
-```
-
-TRACER can use this field to adjust how aggressively it warns about old builds.
-
-### `stale_after_days`
-
-The number of days after which an offline TRACER installation should be considered potentially stale.
-
-```json
-"stale_after_days": 14
-```
-
-During beta testing, TRACER changes frequently, so 14 days is currently appropriate.
-
-Important: TRACER also contains a local fallback stale threshold. This is necessary because if GitHub cannot be reached, TRACER cannot retrieve this field.
-
-The remote value can therefore control normal behavior after a successful version check, while the locally bundled default provides the offline fallback.
-
-For a future stable release, this may be increased substantially, for example:
-
-```json
-"stale_after_days": 90
-```
-
-### `message`
-
-Optional release-specific information to show to users.
-
-Normally this can remain empty:
-
-```json
-"message": ""
-```
-
-It can be used when there is something users should know about a release:
-
-```json
-"message": "Update recommended. This release fixes DOCX revision handling."
-```
-
-Keep this message short and appropriate for all TRACER users.
-
-Do not include internal repository URLs, server names, credentials, implementation details, sensitive information, or anything that should not be publicly visible.
+See [usage-service deployment](usage-service.md) to enable counts. GitHub Pages only serves static files; it cannot increment counters from a manifest fetch. The supplied separate service records launches and estimates distinct installations within a retention window. It does not identify unique people. Do not put a GitHub write token, administrator token, or user identity in the client or manifest.
 
 ## Executable Catalog
 
@@ -216,13 +61,13 @@ Supported attachments are `.exe`, `.msi`, `.msix`, `.zip`, `.tar.gz`, `.tgz`, `.
 5. Publish the release only after its uploads have completed.
 6. The **Publish release catalog** workflow refreshes `executables.json`, advances `latest_version` and `release_date` when an eligible higher version exists, refreshes the download section in `README.md`, commits changed files, and publishes GitHub Pages.
 7. Verify the workflow succeeded and the public JSON endpoints reflect the release.
-8. Edit `minimum_supported_version` or `message` separately when needed, then commit to `main`. Publishing a release does not automatically change support policy, stale thresholds, or your public message. An existing message is retained, so clear any message that no longer applies.
+8. Edit warning/blocking fields deliberately under the [policy rollout procedure](release-policy.md), validate, and merge through review. Keep `minimum_supported_version` equal to `blocked_below_version`. Release synchronization preserves all policy, messages, and usage endpoint fields; it does not automatically retire a version.
 
 A `beta` manifest can advance to either a prerelease or stable build. A `stable` manifest advances only to stable builds. The catalog includes both channels, sorted by numeric version. Draft releases and releases without an uploaded supported attachment cannot advance the manifest. The script does not automatically lower `latest_version`, and it retains the existing date when the version is unchanged.
 
 Attach every required platform build before publishing: the script requires at least one supported attachment and cannot infer which platforms are mandatory. The current version must be available for all users who receive its update warning.
 
-The existing `0.8.8` version remains advertised until you publish a higher eligible version. To make the current build downloadable as well, publish a `v0.8.8` release with its actual executable attached. The supplied first-release package is documented in [the v0.8.8 release checklist](release-v0.8.8.md); upload the ZIP as a Release asset, keeping it out of Git history.
+The existing `0.9.10` version remains advertised until you publish a higher eligible version. The historical first-release procedure is retained in [the v0.8.8 release checklist](release-v0.8.8.md). Upload binaries as Release assets, keeping them out of Git history.
 
 Release publication, editing, deletion, and unpublishing request a synchronization. For asset-only changes, run **Actions → Publish release catalog → Run workflow** on `main`; an asset upload/deletion alone may not trigger a release event. If you remove the currently recommended release, deliberately review and edit `latest_version` and `release_date` after resyncing; the script does not silently select an older release.
 
@@ -234,17 +79,18 @@ gh workflow run release-catalog.yml --repo jgmonroe-phd/tracer-release-info --re
 
 That caller needs `actions: write`. GitHub does not trigger a new release-event workflow for releases created with the workflow token, but explicit workflow dispatch is supported.
 
-## User Notifications
+## User notifications
 
-The JSON is an update-check endpoint. TRACER must fetch it, compare its installed version using semantic version comparison, and show the update warning. The existing mechanism described below continues to use the same fields. To add a download button, the private TRACER application can open the public Releases page or select a matching file from `executables.json`; this repository does not modify the application itself.
+New enforcement-capable clients fetch the policy at every launch, show a prominent warning in the warning stage, and stop before review in the blocking stage or when online policy validation fails. They also require authenticated GenAI access. This repository supplies policy; the private TRACER application must implement it. Existing advisory-only binaries cannot be stopped by this JSON change.
 
-GitHub users can also subscribe through **Watch → Custom → Releases** on the repository to receive GitHub release notifications. Publishing JSON alone does not send email or push notifications.
+GitHub users can subscribe through **Watch → Custom → Releases**. Publishing JSON alone does not send email or push notifications.
 
 ## Local Verification
 
 Run the focused synchronization tests with Python 3.10 or newer:
 
 ```bash
+python3 scripts/validate_policy.py
 python3 -m unittest discover -s tests -v
 ```
 
@@ -272,59 +118,25 @@ Confirm that:
 * the page loads successfully;
 * the JSON is valid;
 * `latest_version` matches the release you intended to publish;
-* `minimum_supported_version` is correct;
+* warning and blocking floors are correct, and `minimum_supported_version` mirrors the blocking floor;
+* any emergency exact block of the recommended release is intentional and clearly communicated;
+* `usage_endpoint` is null until the service is deployed and verified;
 * `release_date` is correct;
 * no private information is present.
 
 GitHub Pages deployment may take a short period after a commit before the public file reflects the change.
 
-## How TRACER Uses This File
+## How current clients use this file
 
-TRACER contains its own installed version and release date.
+The intended new client checks a fresh online schema-2 manifest before work. Blocking takes precedence over warnings. A cached previous success cannot authorize an offline launch. Network, TLS, malformed-policy, and required GenAI failures produce visible errors. See [the policy contract](release-policy.md).
 
-At runtime it can compare those values with this manifest.
-
-Typical behavior is:
-
-```text
-Installed version = latest version
-    → no warning
-
-Installed version < latest version
-    → update available warning
-
-Installed version < minimum supported version
-    → stronger unsupported/outdated warning
-
-GitHub unavailable + build is recent
-    → continue silently
-
-GitHub unavailable + build exceeds stale threshold
-    → warn that the build may be outdated
-```
-
-Failure to access this repository must never prevent TRACER from starting.
-
-The version check is advisory and should fail gracefully when a user has no internet access, GitHub is unavailable, a proxy blocks the request, or the manifest cannot be parsed.
-
-## Local Cache
-
-TRACER caches successful version-check information in the user's application-data directory so it does not need to query GitHub on every launch.
-
-On Windows, this is stored alongside other TRACER configuration data under the application's Local AppData configuration directory.
-
-The cache is disposable. Deleting it should simply cause TRACER to perform another version check.
-
-The cache is not the authoritative source of release information. The authoritative sources are:
-
-1. the version bundled into the installed TRACER application; and
-2. this public `version.json` manifest.
+`minimum_supported_version`, `stale_after_days`, and `message` remain for compatibility with old clients. These compatibility fields cannot make an older advisory-only build enforce blocking or an internet requirement. Replace those builds through your software distribution process; server-side GenAI authorization can independently withdraw their access where supported.
 
 ## PyInstaller Builds
 
 The same mechanism is intended to work with packaged TRACER `.exe` releases.
 
-The installed version and build date are bundled into the executable. The update cache is stored outside the executable in the user's application-data directory.
+The installed version and build date are bundled into the executable. Any display cache and random installation ID are stored outside the executable in the user's application-data directory. A display cache cannot authorize offline use.
 
 This means the mechanism works with both normal Python execution and PyInstaller-packaged releases, including one-file builds.
 
@@ -347,33 +159,13 @@ Only upload executables approved for public distribution. Anyone can download as
 
 Keep the Git repository small by storing executables as Release assets. GitHub currently permits release attachments smaller than 2 GiB each.
 
-## Quick Reference
+## Quick reference
 
-For a routine patch release, the fields most likely to change are:
+For a routine release, publish and qualify binaries before advertising a higher `latest_version`. Catalog synchronization updates that field and `release_date` from actual assets, preserving policy.
 
-```json
-{
-  "latest_version": "NEW_VERSION",
-  "release_date": "YYYY-MM-DD"
-}
-```
+For retirement, first raise `warning_below_version` and set `warning_message`; after the warning period, raise `blocked_below_version` and matching `minimum_supported_version`, then set `blocked_message`. Normally keep the recommended version permitted. Exact known-bad builds can go in `blocked_versions`; blocking the current release is allowed for emergency withdrawal and may leave users unable to run until a replacement is available.
 
-Occasionally also change:
-
-```json
-"minimum_supported_version"
-```
-
-when older versions should no longer be used.
-
-During beta, normally leave:
-
-```json
-"channel": "beta",
-"stale_after_days": 14
-```
-
-Once TRACER becomes stable, reconsider both values.
+For counts, deploy the HTTPS service and then configure `usage_endpoint`; leave it null while undeployed. Admin summaries are private and contain aggregate counts only.
 
 ## GitHub References
 
