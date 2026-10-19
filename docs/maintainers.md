@@ -22,7 +22,7 @@ GitHub Pages can retain its default environment restriction allowing deployments
 
 TRACER checks `https://jgmonroe-phd.github.io/tracer-release-info/version.json`.
 
-See [release policy and staged retirement](release-policy.md) for the schema, exact version boundaries, deployment order, and the limits of retiring legacy binaries. The checked-in manifest keeps `latest_version` at **0.9.10**, warning below **0.9.10**, blocking below **0.8.8**, and `usage_endpoint` at **null**. Publishing this change does not claim a 0.9.11 binary exists or that a counter has been deployed.
+See [release policy and staged retirement](release-policy.md) for the schema, exact version boundaries, deployment order, and the limits of retiring legacy binaries. The recommended public release is **v2026.0.9.23**, mapped explicitly to application version **2026.9.23** in `release-version-aliases.json`. Client policy uses that three-component application version for `latest_version`. Warning below **0.9.10**, blocking below **0.8.8**, and `usage_endpoint: null` are unchanged.
 
 See [usage-service deployment](usage-service.md) to enable counts. GitHub Pages only serves static files; it cannot increment counters from a manifest fetch. The supplied separate service records launches and estimates distinct installations within a retention window. It does not identify unique people. Do not put a GitHub write token, administrator token, or user identity in the client or manifest.
 
@@ -42,7 +42,8 @@ The catalog starts empty until the first release is uploaded and published. It i
 
 | Field | Meaning |
 | --- | --- |
-| `version` | Numeric `major.minor.patch` version from the release tag |
+| `version` | Numeric application `major.minor.patch` version from the tag or an explicit alias |
+| `display_version`, `release_tag` | Optional public release identity for an explicitly mapped tag; URLs always retain the original tag |
 | `channel` | `beta` for a GitHub prerelease, otherwise `stable` |
 | `release_date` | Publication date in `YYYY-MM-DD` format |
 | `release_url` | Version-specific release notes and download page |
@@ -54,10 +55,10 @@ Supported attachments are `.exe`, `.msi`, `.msix`, `.zip`, `.tar.gz`, `.tgz`, `.
 
 ## Normal Release Procedure
 
-For the next build, follow the [2026.9.23 publishing checklist](release-2026.9.23.md), including Windows Command Prompt commands for Python 3.11.
+For this build, follow the [v2026.0.9.23 release guide](release-2026.9.23.md), including Windows Command Prompt commands for Python 3.11.
 
 1. Update the version in the private TRACER codebase, then build and test every executable you intend to distribute.
-2. In this public repository, draft a GitHub Release with a tag such as `v0.8.9`. Tags must be `major.minor.patch` or `vmajor.minor.patch`, with no leading zeroes; mark beta releases as **pre-release** in GitHub instead of adding a tag suffix.
+2. In this public repository, draft a GitHub Release. Ordinary tags use `major.minor.patch` or `vmajor.minor.patch`, with no leading zeroes. A four-component public tag requires an exact entry in `release-version-aliases.json` mapping it to the executable's three-component application version before publication. Mark beta releases as **pre-release** in GitHub instead of adding a tag suffix.
 3. Attach all intended executable/package files to the draft. Use versioned, platform-specific names. Keep private source code and internal information out of public release notes and packaged files.
 4. Add or update the asset rules in `download-platforms.json` for verified operating systems and architectures. Commit those rules to `main` before publishing. ZIP packages are the preferred download when the same platform also has a standalone `.exe`.
 5. Publish the release only after its uploads have completed.
@@ -69,13 +70,15 @@ A `beta` manifest can advance to either a prerelease or stable build. A `stable`
 
 Attach every required platform build before publishing: the script requires at least one supported attachment and cannot infer which platforms are mandatory. The current version must be available for all users who receive its update warning.
 
-The existing `0.9.10` version remains advertised until you publish a higher eligible version. The historical first-release procedure is retained in [the v0.8.8 release checklist](release-v0.8.8.md). Upload binaries as Release assets, keeping them out of Git history.
+The published `v2026.0.9.23` Windows ZIP is eligible through its explicit alias. The historical first-release procedure is retained in [the v0.8.8 release checklist](release-v0.8.8.md). Upload binaries as Release assets, keeping them out of Git history.
 
 ### A published release is missing from the download page
 
-The catalog accepts exactly three numeric version components, optionally prefixed with `v`. For example, build 2026.9.23 uses tag **`v2026.9.23`**. Tags such as `v2026.0.9.18` and `v2026.0.9.12` have four components and are excluded. A successful workflow does not mean every release was eligible: inspect its catalog warnings for excluded published releases and releases without usable uploaded attachments.
+The application policy requires exactly three numeric version components. Public release **`v2026.0.9.23`** is supported through the explicit mapping to **`2026.9.23`**. Its release and download URLs retain all four components, and the website and README show both public and application versions. Do not put the four-component public label in `version.json.latest_version` or policy thresholds: installed clients reject it.
 
-Check the version embedded in an executable before correcting an older release tag. Do not infer it solely from the release title or ZIP filename, and do not rename an old binary as the new build. After correcting the release or uploading its intended assets, run **Actions → Publish release catalog → Run workflow** on `main` and verify both public manifests. Leave the warning and blocking floors unchanged unless deliberately retiring builds under the policy procedure.
+Tags such as `v2026.0.9.18` and `v2026.0.9.12` remain excluded until individually mapped to verified application versions. There is no automatic removal of `.0` from arbitrary tags. Check the embedded application version before adding a mapping; do not infer it solely from the release title or ZIP filename. Conflicting published tags for the same application version and channel fail synchronization. A successful workflow does not mean every release was eligible: inspect its warnings for excluded tags or missing usable attachments.
+
+After adding a mapping or uploading intended assets, run **Actions → Publish release catalog → Run workflow** on `main` and verify both public manifests. Leave warning and blocking floors unchanged unless deliberately retiring builds under the policy procedure.
 
 Release publication, editing, deletion, and unpublishing request a synchronization. For asset-only changes, run **Actions → Publish release catalog → Run workflow** on `main`; an asset upload/deletion alone may not trigger a release event. If you remove the currently recommended release, deliberately review and edit `latest_version` and `release_date` after resyncing; the script does not silently select an older release.
 

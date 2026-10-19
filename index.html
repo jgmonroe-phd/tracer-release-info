@@ -222,8 +222,12 @@
         const details = element("div");
         const heading = element("h2", platformLabel(primary));
         heading.id = "download-heading";
-        const version = "Version " + release.version + " · " + (release.channel === "beta" ? "Beta" : "Stable");
+        const displayVersion = typeof release.display_version === "string" &&
+          /^(0|[1-9][0-9]*)(\.(0|[1-9][0-9]*)){3}$/.test(release.display_version)
+          ? release.display_version : release.version;
+        const version = "Release " + displayVersion + " · " + (release.channel === "beta" ? "Beta" : "Stable");
         details.append(heading, element("p", version, "release-meta"), element("p", primary.name + " · " + fileSize(primary.size_bytes), "file-meta"));
+        if (displayVersion !== release.version) details.append(element("p", "Application version " + release.version, "muted"));
         const action = element("div", undefined, "download-action");
         action.append(downloadLink(primary, true));
         row.append(details, action);

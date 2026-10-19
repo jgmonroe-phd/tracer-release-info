@@ -1,6 +1,8 @@
-# Publishing TRACER 2026.9.23
+# TRACER release v2026.0.9.23
 
-This is a publishing checklist, not an announcement that an executable is available. The source build identifies itself as **2026.9.23**, dated **2026-10-19**. Publish a tested native build before advertising it through `version.json`.
+The public Windows release is **v2026.0.9.23**, with asset **v2026_0_9_23.zip**, published on **2026-10-19**. The corresponding source build identifies itself as application version **2026.9.23**.
+
+The exact mapping in `release-version-aliases.json` lets the catalog recommend your existing release and download URLs. The website and README show release **2026.0.9.23** and application version **2026.9.23**. The client policy retains the three-component application version because distributed TRACER executables reject four-component policy versions. The release tag and ZIP filename do not need to change.
 
 ## Build on Windows in Command Prompt
 
@@ -22,32 +24,24 @@ Confirm the output is `2026.9.23` and `64`. Close the Tk test window, then build
 dist\TRACER_v2026.9.23.exe
 ```
 
-Test the executable on another supported Windows machine without Python installed. Confirm startup, authenticated GenAI access, a small document review, output creation, pending review decisions, and clean-copy export. Recipients still need network access and GenAI credentials. Pandoc is separately required for LaTeX conversion; optional OCR may need Tesseract. This repository update does not claim those Windows or live GenAI checks have been performed.
+The executable's filename and About version can remain `2026.9.23` while it is distributed under public release `v2026.0.9.23`.
 
-## Publish the executable
+Test the executable on another supported Windows machine without Python installed. Confirm startup, authenticated GenAI access, a small document review, output creation, pending review decisions, and clean-copy export. Recipients still need network access and GenAI credentials. Pandoc is separately required for LaTeX conversion; optional OCR may need Tesseract. The release-info repository update does not inspect or execute the uploaded binary and does not establish that these native or live GenAI checks passed.
 
-1. Draft a release with tag **`v2026.9.23`** and title **`TRACER 2026.9.23`**. Use three numeric components; `v2026.0.9.23` is invalid for the catalog and application policy.
-2. Attach the verified `TRACER_v2026.9.23.exe`, or a ZIP containing the tested package. Attach all intended platform builds before publishing. Keep private source code, report documents, test evidence and credentials out of public attachments.
-3. After verifying the Windows x64 target, add an exact rule for the uploaded filename to `download-platforms.json` and merge it before publication. For the standalone executable:
+## Maintain the published release
 
-   ```json
-   {
-     "pattern": "TRACER_v2026.9.23.exe",
-     "platform": "windows",
-     "architecture": "x64"
-   }
-   ```
+1. Keep tag **`v2026.0.9.23`** and its Windows ZIP. No re-upload is required for this catalog correction.
+2. Preserve the exact mapping **`"v2026.0.9.23": "2026.9.23"`**. Configure future nonstandard public tags individually after confirming the corresponding application version; do not globally rewrite all four-component tags.
+3. Add an exact rule for the uploaded filename to `download-platforms.json` after verifying its operating system and architecture. The catalog leaves unknown platform details unspecified.
+4. Keep private source code, report documents, test evidence and credentials out of public attachments. Add the public release notes below if desired.
+5. The **Publish release catalog** workflow updates `executables.json`, advances the application `latest_version` and actual publication date, refreshes the README download table, and deploys Pages. Run it manually on `main` after asset-only changes.
+6. Verify [version.json](https://jgmonroe-phd.github.io/tracer-release-info/version.json), [executables.json](https://jgmonroe-phd.github.io/tracer-release-info/executables.json), and the [download page](https://jgmonroe-phd.github.io/tracer-release-info/). The policy should say `2026.9.23`; the catalog should additionally identify `v2026.0.9.23` and retain its original asset URL.
 
-   Add a separate exact rule for a ZIP if used. Do not label other builds by guessing from their filenames.
-4. Add the public release notes below. Mark the GitHub release as a prerelease if it is still a beta; the existing beta manifest accepts either prerelease or stable builds.
-5. Publish after uploads and checks finish. The **Publish release catalog** workflow updates `executables.json`, advances `latest_version` and `release_date` from the published release, refreshes the README download table, and deploys Pages. The public release date is the actual publication date, which may differ from the source build date.
-6. Verify [version.json](https://jgmonroe-phd.github.io/tracer-release-info/version.json), [executables.json](https://jgmonroe-phd.github.io/tracer-release-info/executables.json), and the [download page](https://jgmonroe-phd.github.io/tracer-release-info/). Confirm version, asset link, size, checksum and platform. For asset-only changes, manually run the workflow on `main`.
-
-The existing retirement policy remains in place: warning below `0.9.10`, blocking below `0.8.8`, no exact blocked versions, and usage counting disabled. Routine release synchronization preserves those settings. Version 2026.9.23 can pass that policy before it becomes the advertised release.
+The retirement policy remains in place: warning below `0.9.10`, blocking below `0.8.8`, no exact blocked versions, and usage counting disabled. This release update does not retire another build.
 
 ## Public release notes
 
-TRACER 2026.9.23 separates completed processing with pending human decisions from unfinished review execution.
+TRACER release 2026.0.9.23 (application version 2026.9.23) separates completed processing with pending human decisions from unfinished review execution.
 
 - **Completed—review required** means processing finished and review decisions remain. Failed requests, cancellation, missing coverage, limits and output failures still produce **Incomplete**, with explanations and available results retained.
 - **05_Final_review.docx** retains pending tracked proposals and comments so reviewers can make the remaining decisions in Word.

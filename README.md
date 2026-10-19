@@ -10,11 +10,13 @@ Choose a release asset that matches your operating system and processor. Availab
 
 <!-- downloads:start -->
 
-Recommended version: **0.9.10** (stable).
+Recommended version: **2026.0.9.23** (stable).
+
+Application version: **2026.9.23**.
 
 | Platform | File | Size | Version |
 | --- | --- | --- | --- |
-| Platform not specified | [TRACER\_v0\.9\.10\.exe](https://github.com/jgmonroe-phd/tracer-release-info/releases/download/v0.9.10/TRACER_v0.9.10.exe) | 60.6 MiB | 0.9.10 |
+| Platform not specified | [v2026\_0\_9\_23\.zip](https://github.com/jgmonroe-phd/tracer-release-info/releases/download/v2026.0.9.23/v2026_0_9_23.zip) | 59.3 MiB | 2026.0.9.23 |
 
 [All releases](https://github.com/jgmonroe-phd/tracer-release-info/releases)
 
@@ -44,4 +46,4 @@ If Windows or your organization blocks the application, contact your IT team or 
 
 ---
 
-Publishing a new build? See the [2026.9.23 publishing checklist](docs/release-2026.9.23.md), [maintainer guide](docs/maintainers.md), [warning/blocking policy](docs/release-policy.md), and [usage counts](docs/usage-service.md).
+Publishing a new build? See the [v2026.0.9.23 release guide](docs/release-2026.9.23.md), [maintainer guide](docs/maintainers.md), [warning/blocking policy](docs/release-policy.md), and [usage counts](docs/usage-service.md).

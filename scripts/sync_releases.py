@@ -21,6 +21,7 @@ except ModuleNotFoundError:
 
 ROOT = Path(__file__).resolve().parents[1]
 VERSION = re.compile(r"(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\Z")
+ALIAS_TAG = re.compile(r"v?(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\Z")
 REPOSITORY = re.compile(r"[A-Za-z0-9][A-Za-z0-9-]*/[A-Za-z0-9][A-Za-z0-9_.-]*\Z")
 PACKAGE_SUFFIXES = (
     ".exe", ".msi", ".msix", ".zip", ".tar.gz", ".tgz", ".dmg",
@@ -37,6 +38,34 @@ def parse_version(value):
     if not isinstance(value, str) or not VERSION.fullmatch(value):
         raise ValueError(f"invalid version {value!r}; expected major.minor.patch")
     return tuple(int(part) for part in value.split("."))
+
+
+def validate_version_aliases(aliases):
+    """Allow only explicit four-part public tags mapped to distinct app versions."""
+    if not isinstance(aliases, dict):
+        raise ValueError("release version aliases must be a JSON object")
+    targets = set()
+    for tag, version in aliases.items():
+        if not isinstance(tag, str) or not ALIAS_TAG.fullmatch(tag):
+            raise ValueError(f"invalid release alias tag {tag!r}; expected an optional v and four numeric parts")
+        target = parse_version(version)
+        if target in targets:
+            raise ValueError(f"duplicate application version in release aliases: {version!r}")
+        targets.add(target)
+
+
+def load_version_aliases(path):
+    def unique_pairs(pairs):
+        result = {}
+        for key, value in pairs:
+            if key in result:
+                raise ValueError(f"duplicate release alias tag: {key!r}")
+            result[key] = value
+        return result
+
+    aliases = json.loads(path.read_text(encoding="utf-8"), object_pairs_hook=unique_pairs)
+    validate_version_aliases(aliases)
+    return aliases
 
 
 def github_url(value, expected_path):
@@ -131,11 +160,13 @@ def asset_file(asset, repository, tag, platform_rules):
     }
 
 
-def build_metadata(manifest, releases, repository, platform_rules=None, *, diagnostics=None):
+def build_metadata(manifest, releases, repository, platform_rules=None, *, diagnostics=None,
+                   version_aliases=None):
     """Return new documents, optionally collecting reasons published releases were skipped.
 
-    The two-value return and catalog selection are unchanged. Callers that need
-    diagnostics can supply a list; input documents are never mutated.
+    The two-value return is unchanged. Explicit aliases separate public tags
+    from application versions. Callers that need diagnostics can supply a list;
+    input documents are never mutated.
     """
     if not isinstance(releases, list):
         raise ValueError("--releases must contain a JSON list of release objects")
@@ -144,6 +175,9 @@ def build_metadata(manifest, releases, repository, platform_rules=None, *, diagn
     if platform_rules is None:
         platform_rules = []
     validate_platform_rules(platform_rules)
+    if version_aliases is None:
+        version_aliases = {}
+    validate_version_aliases(version_aliases)
     if not isinstance(manifest, dict):
         raise ValueError("version.json must contain a JSON object")
     validate_policy(manifest)
@@ -156,6 +190,7 @@ def build_metadata(manifest, releases, repository, platform_rules=None, *, diagn
     current = parse_version(manifest.get("latest_version"))
 
     catalog = []
+    published_versions = {}
     for release in releases:
         if not isinstance(release, dict):
             raise ValueError("each release must be an object")
@@ -163,18 +198,31 @@ def build_metadata(manifest, releases, repository, platform_rules=None, *, diagn
             continue
         tag = release.get("tag_name")
         version = tag[1:] if isinstance(tag, str) and tag.startswith("v") else tag
+        is_alias = isinstance(tag, str) and tag in version_aliases
+        if is_alias:
+            version = version_aliases[tag]
         if not isinstance(version, str) or not VERSION.fullmatch(version):
             if diagnostics is not None:
                 diagnostics.append(
-                    f"Skipped published release {tag!r}: unsupported tag. Use the exact "
-                    "application version as major.minor.patch, optionally prefixed with v "
-                    "(for example, v2026.9.23); four-part versions are not supported. "
-                    "Verify the executable's embedded version before correcting its release tag."
+                    f"Skipped published release {tag!r}: unsupported tag. Standard tags use "
+                    "major.minor.patch, optionally prefixed with v. To keep a four-part public "
+                    "tag, add its exact mapping to the application's three-part version in "
+                    "release-version-aliases.json after verifying the executable's embedded version. "
+                    "Unlisted four-part tags are not converted automatically."
                 )
             continue
         prerelease = release.get("prerelease")
         if not isinstance(prerelease, bool):
             raise ValueError(f"release {tag!r} prerelease must be a boolean")
+        release_channel = "beta" if prerelease else "stable"
+        identity = version, release_channel
+        previous_tag = published_versions.get(identity)
+        if previous_tag is not None and previous_tag != tag:
+            raise ValueError(
+                f"ambiguous published release tags {previous_tag!r} and {tag!r}: "
+                f"both resolve to application version {version} ({release_channel})"
+            )
+        published_versions[identity] = tag
         assets = release.get("assets")
         if not isinstance(assets, list):
             raise ValueError(f"release {tag!r} assets must be a list")
@@ -193,13 +241,17 @@ def build_metadata(manifest, releases, repository, platform_rules=None, *, diagn
                 )
             continue
         path = f"/{repository}/releases/tag/{quote(tag, safe='')}"
-        catalog.append({
+        entry = {
             "version": version,
-            "channel": "beta" if prerelease else "stable",
+            "channel": release_channel,
             "release_date": release_date(release["published_at"]),
             "release_url": github_url(release.get("html_url"), path),
             "files": files,
-        })
+        }
+        if is_alias:
+            entry["display_version"] = tag[1:] if tag.startswith("v") else tag
+            entry["release_tag"] = tag
+        catalog.append(entry)
 
     catalog.sort(key=lambda item: (
         tuple(-number for number in parse_version(item["version"])),
@@ -254,7 +306,10 @@ def render_downloads(readme, manifest, catalog, repository):
     ), None)
     version = manifest["latest_version"]
     channel = recommended["channel"] if recommended else manifest["channel"]
-    lines = [f"Recommended version: **{version}** ({channel}).", ""]
+    display_version = recommended.get("display_version", version) if recommended else version
+    lines = [f"Recommended version: **{display_version}** ({channel}).", ""]
+    if display_version != version:
+        lines.extend([f"Application version: **{version}**.", ""])
     if recommended is None:
         lines.append("No public download is available yet for this recommended version.")
     else:
@@ -274,7 +329,7 @@ def render_downloads(readme, manifest, catalog, repository):
             # Encode Markdown delimiters even when GitHub returned them literally.
             url = quote(item["url"], safe=":/%")
             name = markdown_text(item["name"])
-            lines.append(f"| {platform} | [{name}]({url}) | {human_size(item['size_bytes'])} | {version} |")
+            lines.append(f"| {platform} | [{name}]({url}) | {human_size(item['size_bytes'])} | {display_version} |")
     lines.extend(["", f"[All releases](https://github.com/{repository}/releases)"])
     return readme[:start] + "\n\n" + "\n".join(lines) + "\n\n" + readme[end:]
 
@@ -286,6 +341,8 @@ def main(argv=None):
     parser.add_argument("--manifest", type=Path, default=ROOT / "version.json")
     parser.add_argument("--catalog", type=Path, default=ROOT / "executables.json")
     parser.add_argument("--platforms", type=Path, default=ROOT / "download-platforms.json")
+    parser.add_argument("--aliases", type=Path,
+                        help="exact public-tag/application-version mappings (default: release-version-aliases.json if present)")
     parser.add_argument("--readme", type=Path, default=ROOT / "README.md")
     args = parser.parse_args(argv)
     try:
@@ -294,10 +351,16 @@ def main(argv=None):
         releases = json.loads(args.releases.read_text(encoding="utf-8"))
         manifest = load_policy(args.manifest)
         platform_rules = json.loads(args.platforms.read_text(encoding="utf-8"))
+        aliases_path = args.aliases if args.aliases is not None else ROOT / "release-version-aliases.json"
+        version_aliases = (
+            load_version_aliases(aliases_path)
+            if args.aliases is not None or aliases_path.exists() else {}
+        )
         readme = args.readme.read_bytes().decode("utf-8")
         diagnostics = []
         updated, catalog = build_metadata(
             manifest, releases, args.repository, platform_rules, diagnostics=diagnostics,
+            version_aliases=version_aliases,
         )
         for message in diagnostics:
             report_warning(message)
