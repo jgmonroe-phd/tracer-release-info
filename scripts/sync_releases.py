@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 from fnmatch import fnmatchcase
 from html import escape
 import json
+import os
 from pathlib import Path
 import re
 import sys
@@ -130,8 +131,12 @@ def asset_file(asset, repository, tag, platform_rules):
     }
 
 
-def build_metadata(manifest, releases, repository, platform_rules=None):
-    """Return complete new documents without mutating inputs or writing files."""
+def build_metadata(manifest, releases, repository, platform_rules=None, *, diagnostics=None):
+    """Return new documents, optionally collecting reasons published releases were skipped.
+
+    The two-value return and catalog selection are unchanged. Callers that need
+    diagnostics can supply a list; input documents are never mutated.
+    """
     if not isinstance(releases, list):
         raise ValueError("--releases must contain a JSON list of release objects")
     if not REPOSITORY.fullmatch(repository):
@@ -157,10 +162,15 @@ def build_metadata(manifest, releases, repository, platform_rules=None):
         if release.get("draft") is not False or not release.get("published_at"):
             continue
         tag = release.get("tag_name")
-        if not isinstance(tag, str):
-            continue
-        version = tag[1:] if tag.startswith("v") else tag
-        if not VERSION.fullmatch(version):
+        version = tag[1:] if isinstance(tag, str) and tag.startswith("v") else tag
+        if not isinstance(version, str) or not VERSION.fullmatch(version):
+            if diagnostics is not None:
+                diagnostics.append(
+                    f"Skipped published release {tag!r}: unsupported tag. Use the exact "
+                    "application version as major.minor.patch, optionally prefixed with v "
+                    "(for example, v2026.9.23); four-part versions are not supported. "
+                    "Verify the executable's embedded version before correcting its release tag."
+                )
             continue
         prerelease = release.get("prerelease")
         if not isinstance(prerelease, bool):
@@ -174,6 +184,13 @@ def build_metadata(manifest, releases, repository, platform_rules=None):
             key=lambda item: (item["name"].casefold(), item["name"], item["url"]),
         )
         if not files:
+            if diagnostics is not None:
+                diagnostics.append(
+                    f"Skipped published release {tag!r}: no supported, fully uploaded, "
+                    "nonempty package assets. Upload the built executable or a supported "
+                    "package to this release; source archives and checksum files alone "
+                    "are not downloadable application packages."
+                )
             continue
         path = f"/{repository}/releases/tag/{quote(tag, safe='')}"
         catalog.append({
@@ -196,6 +213,17 @@ def build_metadata(manifest, releases, repository, platform_rules=None):
         updated["release_date"] = eligible[0]["release_date"]
     validate_policy(updated)
     return updated, {"product": product, "releases": catalog}
+
+
+def report_warning(message):
+    """Show CLI diagnostics and safely encode GitHub Actions command data."""
+    # Release tags are untrusted. Escape data before it enters an Actions
+    # workflow command so percent escapes and newlines cannot create commands.
+    escaped = message.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+    console_message = message.replace("\r", "\\r").replace("\n", "\\n")
+    print(f"sync_releases: warning: {console_message}", file=sys.stderr)
+    if os.environ.get("GITHUB_ACTIONS") == "true":
+        print(f"::warning::{escaped}")
 
 
 def markdown_text(value):
@@ -267,7 +295,12 @@ def main(argv=None):
         manifest = load_policy(args.manifest)
         platform_rules = json.loads(args.platforms.read_text(encoding="utf-8"))
         readme = args.readme.read_bytes().decode("utf-8")
-        updated, catalog = build_metadata(manifest, releases, args.repository, platform_rules)
+        diagnostics = []
+        updated, catalog = build_metadata(
+            manifest, releases, args.repository, platform_rules, diagnostics=diagnostics,
+        )
+        for message in diagnostics:
+            report_warning(message)
         updated_readme = render_downloads(readme, updated, catalog, args.repository)
         # Validate and serialize all documents before touching any output.
         manifest_text = json.dumps(updated, indent=2, ensure_ascii=False) + "\n"
@@ -282,7 +315,11 @@ def main(argv=None):
     except (OSError, ValueError, RecursionError) as error:
         print(f"sync_releases: {error}", file=sys.stderr)
         return 1
-    print(f"Catalog contains {len(catalog['releases'])} releases; latest version: {updated['latest_version']}")
+    accepted = len(catalog["releases"])
+    print(
+        f"Release sync: accepted {accepted} of {len(releases)} input releases; "
+        f"skipped {len(releases) - accepted}; latest version: {updated['latest_version']}"
+    )
     return 0
 
 

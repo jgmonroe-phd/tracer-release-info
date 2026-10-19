@@ -1,13 +1,17 @@
 """Regression checks for what the public update endpoint may advertise."""
 
 from copy import deepcopy
+from contextlib import redirect_stderr, redirect_stdout
 import importlib.util
+import io
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 
 
 SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "sync_releases.py"
@@ -48,6 +52,98 @@ def release(version="0.8.9", prerelease=False, **changes):
 
 
 class MetadataTests(unittest.TestCase):
+    def test_four_part_published_tags_are_diagnosed_without_changing_policy(self):
+        original = manifest()
+        diagnostics = []
+        updated, catalog = sync.build_metadata(
+            original, [release("2026.0.9.18"), release("2026.0.9.12")],
+            REPOSITORY, diagnostics=diagnostics,
+        )
+        self.assertEqual(updated, original)
+        self.assertEqual(catalog["releases"], [])
+        self.assertEqual(len(diagnostics), 2)
+        for tag, diagnostic in zip(("v2026.0.9.18", "v2026.0.9.12"), diagnostics):
+            self.assertIn(tag, diagnostic)
+            self.assertIn("major.minor.patch", diagnostic)
+            self.assertIn("embedded version", diagnostic)
+
+    def test_three_part_build23_fixture_advances_without_changing_policy(self):
+        original = manifest()
+        diagnostics = []
+        candidate = release("2026.9.23", published_at="2026-10-19T12:00:00Z")
+        updated, catalog = sync.build_metadata(
+            original, [candidate], REPOSITORY, diagnostics=diagnostics,
+        )
+        self.assertEqual(updated, original | {
+            "latest_version": "2026.9.23", "release_date": "2026-10-19",
+        })
+        self.assertEqual(catalog["releases"][0]["version"], "2026.9.23")
+        self.assertEqual(diagnostics, [])
+
+    def test_published_releases_without_packages_have_actionable_diagnostics(self):
+        diagnostics = []
+        candidates = [
+            release("2026.9.23", assets=[]),
+            release("2026.9.22", assets=[{"name": "TRACER.exe.sha256", "state": "uploaded"}]),
+            release("2026.9.21", assets=[{"name": "TRACER.exe", "state": "starter"}]),
+            release("2026.9.20", assets=[{"name": "TRACER.exe", "state": "uploaded", "size": 0}]),
+        ]
+        updated, catalog = sync.build_metadata(
+            manifest(), candidates, REPOSITORY, diagnostics=diagnostics,
+        )
+        self.assertEqual(updated, manifest())
+        self.assertEqual(catalog["releases"], [])
+        self.assertEqual(len(diagnostics), len(candidates))
+        for candidate, diagnostic in zip(candidates, diagnostics):
+            self.assertIn(candidate["tag_name"], diagnostic)
+            self.assertIn("Upload the built executable", diagnostic)
+
+    def test_warning_cannot_inject_additional_workflow_commands(self):
+        stdout, stderr = io.StringIO(), io.StringIO()
+        message = "tag%0A\r\n::error::untrusted"
+        with patch.dict(os.environ, {"GITHUB_ACTIONS": "true"}):
+            with redirect_stdout(stdout), redirect_stderr(stderr):
+                sync.report_warning(message)
+        self.assertEqual(stdout.getvalue(), "::warning::tag%250A%0D%0A::error::untrusted\n")
+        self.assertEqual(stderr.getvalue(), "sync_releases: warning: tag%0A\\r\\n::error::untrusted\n")
+        self.assertEqual(len(stdout.getvalue().splitlines()), 1)
+        self.assertEqual(len(stderr.getvalue().splitlines()), 1)
+
+    def test_cli_reports_skipped_published_releases_and_counts(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            candidates = [
+                release("2026.9.23", published_at="2026-10-19T12:00:00Z"),
+                release("2026.0.9.18"), release("2026.9.22", assets=[]),
+                release("2026.9.24", draft=True), release(tag_name="bad%\r\n::error::injected"),
+            ]
+            inputs = {
+                "version.json": json.dumps(manifest()), "releases.json": json.dumps(candidates),
+                "README.md": README, "download-platforms.json": "[]",
+            }
+            for name, contents in inputs.items():
+                (root / name).write_text(contents, encoding="utf-8")
+            command = [
+                sys.executable, str(SCRIPT), "--repository", REPOSITORY,
+                "--releases", str(root / "releases.json"), "--manifest", str(root / "version.json"),
+                "--catalog", str(root / "executables.json"), "--readme", str(root / "README.md"),
+                "--platforms", str(root / "download-platforms.json"),
+            ]
+            for actions in ("false", "true"):
+                with self.subTest(actions=actions):
+                    result = subprocess.run(command, capture_output=True, text=True,
+                                            env=os.environ | {"GITHUB_ACTIONS": actions})
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    self.assertIn("accepted 1 of 5 input releases; skipped 4", result.stdout)
+                    self.assertIn("v2026.0.9.18", result.stderr)
+                    self.assertIn("v2026.9.22", result.stderr)
+                    self.assertIn("Upload the built executable", result.stderr)
+                    annotations = [line for line in result.stdout.splitlines() if line.startswith("::")]
+                    self.assertEqual(len(annotations), 3 if actions == "true" else 0)
+                    self.assertTrue(all(line.startswith("::warning::") for line in annotations))
+                    self.assertFalse(any(line.startswith("::error::") for line in result.stderr.splitlines()))
+            self.assertEqual(json.loads((root / "version.json").read_text())["latest_version"], "2026.9.23")
+
     def test_advances_version_and_preserves_policy_and_unknown_fields(self):
         original = manifest()
         snapshot = deepcopy(original)

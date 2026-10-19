@@ -54,6 +54,8 @@ Supported attachments are `.exe`, `.msi`, `.msix`, `.zip`, `.tar.gz`, `.tgz`, `.
 
 ## Normal Release Procedure
 
+For the next build, follow the [2026.9.23 publishing checklist](release-2026.9.23.md), including Windows Command Prompt commands for Python 3.11.
+
 1. Update the version in the private TRACER codebase, then build and test every executable you intend to distribute.
 2. In this public repository, draft a GitHub Release with a tag such as `v0.8.9`. Tags must be `major.minor.patch` or `vmajor.minor.patch`, with no leading zeroes; mark beta releases as **pre-release** in GitHub instead of adding a tag suffix.
 3. Attach all intended executable/package files to the draft. Use versioned, platform-specific names. Keep private source code and internal information out of public release notes and packaged files.
@@ -68,6 +70,12 @@ A `beta` manifest can advance to either a prerelease or stable build. A `stable`
 Attach every required platform build before publishing: the script requires at least one supported attachment and cannot infer which platforms are mandatory. The current version must be available for all users who receive its update warning.
 
 The existing `0.9.10` version remains advertised until you publish a higher eligible version. The historical first-release procedure is retained in [the v0.8.8 release checklist](release-v0.8.8.md). Upload binaries as Release assets, keeping them out of Git history.
+
+### A published release is missing from the download page
+
+The catalog accepts exactly three numeric version components, optionally prefixed with `v`. For example, build 2026.9.23 uses tag **`v2026.9.23`**. Tags such as `v2026.0.9.18` and `v2026.0.9.12` have four components and are excluded. A successful workflow does not mean every release was eligible: inspect its catalog warnings for excluded published releases and releases without usable uploaded attachments.
+
+Check the version embedded in an executable before correcting an older release tag. Do not infer it solely from the release title or ZIP filename, and do not rename an old binary as the new build. After correcting the release or uploading its intended assets, run **Actions → Publish release catalog → Run workflow** on `main` and verify both public manifests. Leave the warning and blocking floors unchanged unless deliberately retiring builds under the policy procedure.
 
 Release publication, editing, deletion, and unpublishing request a synchronization. For asset-only changes, run **Actions → Publish release catalog → Run workflow** on `main`; an asset upload/deletion alone may not trigger a release event. If you remove the currently recommended release, deliberately review and edit `latest_version` and `release_date` after resyncing; the script does not silently select an older release.
 
