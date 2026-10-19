@@ -6,15 +6,17 @@ Get the TRACER application here. Choose the download for your computer, then fol
 
 ## Which file do I need?
 
-The first TRACER package is for **64-bit Windows (Intel or AMD)**. A Mac, Linux, or native Windows ARM package has not been provided. If you are unsure which Windows system you have, open **Settings → System → About** and check **System type**.
+Choose a release asset that matches your operating system and processor. Availability can differ by version; check the platform label and release notes. If a platform is not specified, confirm it with the maintainer before downloading. On Windows, open **Settings → System → About** and check **System type**.
 
 <!-- downloads:start -->
 
-Recommended version: **0.9.10** (stable).
+Recommended version: **2026.0.9.23** (stable).
+
+Application version: **2026.9.23**.
 
 | Platform | File | Size | Version |
 | --- | --- | --- | --- |
-| Platform not specified | [TRACER\_v0\.9\.10\.exe](https://github.com/jgmonroe-phd/tracer-release-info/releases/download/v0.9.10/TRACER_v0.9.10.exe) | 60.6 MiB | 0.9.10 |
+| Platform not specified | [v2026\_0\_9\_23\.zip](https://github.com/jgmonroe-phd/tracer-release-info/releases/download/v2026.0.9.23/v2026_0_9_23.zip) | 59.3 MiB | 2026.0.9.23 |
 
 [All releases](https://github.com/jgmonroe-phd/tracer-release-info/releases)
 
@@ -22,11 +24,9 @@ Recommended version: **0.9.10** (stable).
 
 ## Download and open TRACER on Windows
 
-1. **Download the ZIP** using the download link above.
-2. **Extract it:** find the ZIP in your Downloads folder, right-click it, and choose **Extract All**. Open the extracted folder.
-3. **Open TRACER:** double-click the TRACER application, the file ending in `.exe`. Run it from the extracted folder.
-
-For version 0.8.8, the download is `TRACER_v0.8.8.zip` and the application inside is `TRACER_v0.8.8.exe`.
+1. **Download the Windows package or executable** using the download link above.
+2. **If it is a ZIP:** right-click it, choose **Extract All**, and open the extracted folder. Keep the extracted files together.
+3. **Open TRACER:** double-click the file ending in `.exe`. For a ZIP package, run it from the extracted folder; a standalone `.exe` can be opened directly.
 
 If you browse GitHub's release page, choose the named TRACER download under **Assets**. The automatically listed **Source code** archives are not the application.
 
@@ -46,4 +46,4 @@ If Windows or your organization blocks the application, contact your IT team or 
 
 ---
 
-Publishing a new build? See the [maintainer guide](docs/maintainers.md), [warning/blocking policy](docs/release-policy.md), and [usage counts](docs/usage-service.md).
+Publishing a new build? See the [v2026.0.9.23 release guide](docs/release-2026.9.23.md), [maintainer guide](docs/maintainers.md), [warning/blocking policy](docs/release-policy.md), and [usage counts](docs/usage-service.md).
