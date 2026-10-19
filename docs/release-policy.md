@@ -2,13 +2,13 @@
 
 `version.json` is the public policy consumed by new enforcement-capable TRACER clients. Existing clients that only show advisory warnings will still behave that way. Updating this repository cannot rewrite an already distributed executable, force it online, or remove its local files. Replace old binaries through managed distribution. If GenAI service authorization supports minimum client versions, enforce that separately on the server; a self-reported version is not proof of an approved executable.
 
-## Current safe starting policy
+## Current policy
 
-| Field | Initial value | Meaning |
+| Field | Value | Meaning |
 | --- | --- | --- |
 | `schema_version` | `2` | Explicit policy contract |
-| `latest_version` | `0.9.10` | Actual currently advertised release; do not advance before binaries are published |
-| `warning_below_version` | `0.9.10` | Warn at any lower version that is not blocked |
+| `latest_version` | `2026.9.23` | Application version corresponding to public release v2026.0.9.23 |
+| `warning_below_version` | `2026.9.23` | Warn at any lower version that is not already blocked; allow continued use |
 | `blocked_below_version` | `0.8.8` | Stop at any lower version |
 | `minimum_supported_version` | `0.8.8` | Compatibility mirror of blocking floor |
 | `blocked_versions` | `[]` | Stop these exact versions, including versions otherwise above the floor |
@@ -18,7 +18,7 @@
 
 Other retained fields: `product` must be `TRACER`; `release_date` is the latest release's date; `channel` is `beta` or `stable`; `message` is an optional public release note. `stale_after_days` remains solely for legacy readers and informational display. It does not grant new clients an offline grace period.
 
-The table above records the initial retirement policy. The recommended public release is now **v2026.0.9.23**, whose application version is **2026.9.23**. The catalog uses an exact mapping in `release-version-aliases.json`; `version.json.latest_version` remains the three-component application version. Public display labels and original download URLs can contain four components, but client policy fields cannot. The existing warning and blocking floors remain unchanged.
+The recommended public release is **v2026.0.9.23**, whose application version is **2026.9.23**. The catalog uses an exact mapping in `release-version-aliases.json`; `version.json.latest_version` and `warning_below_version` use the three-component application version. Public display labels and original download URLs can contain four components, but client policy fields cannot. Supported older builds now receive an update warning; the blocking floor remains **0.8.8**. Versions below that floor remain blocked. Advisory-only legacy binaries retain their own update notification behavior; publishing this policy cannot add a warning dialog to an executable that does not implement one.
 
 Versions are numeric `major.minor.patch` values, never string-sorted. Floors are exclusive: exactly equal to a floor passes that floor. Blocking always wins over warnings. A version equal to `warning_below_version` is allowed without the retirement warning unless explicitly blocked. An update may still be available above it.
 

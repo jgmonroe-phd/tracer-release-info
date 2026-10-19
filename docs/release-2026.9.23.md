@@ -26,18 +26,18 @@ dist\TRACER_v2026.9.23.exe
 
 The executable's filename and About version can remain `2026.9.23` while it is distributed under public release `v2026.0.9.23`.
 
-Test the executable on another supported Windows machine without Python installed. Confirm startup, authenticated GenAI access, a small document review, output creation, pending review decisions, and clean-copy export. Recipients still need network access and GenAI credentials. Pandoc is separately required for LaTeX conversion; optional OCR may need Tesseract. The release-info repository update does not inspect or execute the uploaded binary and does not establish that these native or live GenAI checks passed.
+Test the executable on another supported Windows machine without Python installed. Confirm startup, authenticated GenAI access, a small document review, output creation, pending review decisions, and clean-copy export. Recipients still need network access and GenAI credentials. Pandoc is separately required for LaTeX conversion; optional OCR may need Tesseract. The release-info repository update checks the uploaded executable's architecture without executing it and does not establish that these native or live GenAI checks passed.
 
 ## Maintain the published release
 
 1. Keep tag **`v2026.0.9.23`** and its Windows ZIP. No re-upload is required for this catalog correction.
 2. Preserve the exact mapping **`"v2026.0.9.23": "2026.9.23"`**. Configure future nonstandard public tags individually after confirming the corresponding application version; do not globally rewrite all four-component tags.
-3. Add an exact rule for the uploaded filename to `download-platforms.json` after verifying its operating system and architecture. The catalog leaves unknown platform details unspecified.
+3. The exact filename rule for `v2026_0_9_23.zip` identifies **Windows x64**. Its downloaded bytes matched GitHub's SHA-256, and the contained `dist/TRACER_v2026.9.23.exe` has PE machine value `0x8664`. The executable was inspected but not run. Verify other assets independently before adding their platform rules.
 4. Keep private source code, report documents, test evidence and credentials out of public attachments. Add the public release notes below if desired.
 5. The **Publish release catalog** workflow updates `executables.json`, advances the application `latest_version` and actual publication date, refreshes the README download table, and deploys Pages. Run it manually on `main` after asset-only changes.
 6. Verify [version.json](https://jgmonroe-phd.github.io/tracer-release-info/version.json), [executables.json](https://jgmonroe-phd.github.io/tracer-release-info/executables.json), and the [download page](https://jgmonroe-phd.github.io/tracer-release-info/). The policy should say `2026.9.23`; the catalog should additionally identify `v2026.0.9.23` and retain its original asset URL.
 
-The retirement policy remains in place: warning below `0.9.10`, blocking below `0.8.8`, no exact blocked versions, and usage counting disabled. This release update does not retire another build.
+The update warning now applies below application version `2026.9.23`, corresponding to public release `v2026.0.9.23`. Supported older builds may continue after the warning. Blocking below `0.8.8`, no exact blocked versions, and disabled usage counting remain unchanged. This change does not newly block any version.
 
 ## Public release notes
 

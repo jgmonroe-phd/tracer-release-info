@@ -16,7 +16,7 @@ Application version: **2026.9.23**.
 
 | Platform | File | Size | Version |
 | --- | --- | --- | --- |
-| Platform not specified | [v2026\_0\_9\_23\.zip](https://github.com/jgmonroe-phd/tracer-release-info/releases/download/v2026.0.9.23/v2026_0_9_23.zip) | 59.3 MiB | 2026.0.9.23 |
+| Windows (64-bit) | [v2026\_0\_9\_23\.zip](https://github.com/jgmonroe-phd/tracer-release-info/releases/download/v2026.0.9.23/v2026_0_9_23.zip) | 59.3 MiB | 2026.0.9.23 |
 
 [All releases](https://github.com/jgmonroe-phd/tracer-release-info/releases)
 

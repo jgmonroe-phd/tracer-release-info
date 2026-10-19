@@ -3,5 +3,10 @@
     "pattern": "TRACER_v0.8.8.zip",
     "platform": "windows",
     "architecture": "x64"
+  },
+  {
+    "pattern": "v2026_0_9_23.zip",
+    "platform": "windows",
+    "architecture": "x64"
   }
 ]

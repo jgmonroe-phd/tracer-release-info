@@ -7,10 +7,10 @@
   "stale_after_days": 14,
   "message": "",
   "schema_version": 2,
-  "warning_below_version": "0.9.10",
+  "warning_below_version": "2026.9.23",
   "blocked_below_version": "0.8.8",
   "blocked_versions": [],
-  "warning_message": "This TRACER version is nearing retirement. Update to the recommended release.",
+  "warning_message": "A newer TRACER release is available: v2026.0.9.23 (application version 2026.9.23). Download it at https://jgmonroe-phd.github.io/tracer-release-info/. You can continue using this version.",
   "blocked_message": "This TRACER version is no longer permitted. Download and install the recommended release before continuing.",
   "usage_endpoint": null
 }
