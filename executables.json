@@ -12,8 +12,8 @@
           "url": "https://github.com/jgmonroe-phd/tracer-release-info/releases/download/v2026.0.9.23/v2026_0_9_23.zip",
           "size_bytes": 62157526,
           "sha256": "aa0280a7c2ce33541f8c22eae5bbf04670c2a7e021d36b24e2949143165eb1d5",
-          "platform": null,
-          "architecture": null
+          "platform": "windows",
+          "architecture": "x64"
         }
       ],
       "display_version": "2026.0.9.23",
