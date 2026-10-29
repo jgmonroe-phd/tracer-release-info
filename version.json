@@ -1,16 +1,16 @@
 {
   "product": "TRACER",
-  "latest_version": "2026.9.23",
-  "minimum_supported_version": "0.8.8",
-  "release_date": "2026-10-19",
+  "latest_version": "2026.1.2.6",
+  "minimum_supported_version": "2026.9.23",
+  "release_date": "2026-10-29",
   "channel": "beta",
   "stale_after_days": 14,
   "message": "",
   "schema_version": 2,
   "warning_below_version": "2026.9.23",
-  "blocked_below_version": "0.8.8",
+  "blocked_below_version": "2026.9.14",
   "blocked_versions": [],
-  "warning_message": "A newer TRACER release is available: v2026.0.9.23 (application version 2026.9.23). Download it at https://jgmonroe-phd.github.io/tracer-release-info/. You can continue using this version.",
-  "blocked_message": "This TRACER version is no longer permitted. Download and install the recommended release before continuing.",
+  "warning_message": "A newer TRACER release is available: v2026.1.2.6 (application version 2026.1.2.6). Download it at https://jgmonroe-phd.github.io/tracer-release-info/. You can continue using this version.",
+  "blocked_message": "This TRACER version is no longer permitted. Download and install the recommended release at https://jgmonroe-phd.github.io/tracer-release-info/ before continuing.",
   "usage_endpoint": null
 }
