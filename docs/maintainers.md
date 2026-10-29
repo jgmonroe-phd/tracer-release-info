@@ -20,6 +20,10 @@ GitHub Pages can retain its default environment restriction allowing deployments
 
 ## Version policy and usage counts
 
+NEXUS development compositions have a separate [NEXUS TRACER policy endpoint](nexus-tracer-policy.md)
+on the same Pages site. Its reviewed allowlist and scheduled freshness publication
+do not replace the original application's version policy described below.
+
 TRACER checks `https://jgmonroe-phd.github.io/tracer-release-info/version.json`.
 
 See [release policy and staged retirement](release-policy.md) for the schema, exact version boundaries, deployment order, and the limits of retiring legacy binaries. The recommended public release is **v2026.0.9.23**, mapped explicitly to application version **2026.9.23** in `release-version-aliases.json`. Client policy uses that three-component application version for `latest_version` and `warning_below_version`. Supported older builds warn and may continue. Blocking below **0.8.8** and `usage_endpoint: null` are unchanged.

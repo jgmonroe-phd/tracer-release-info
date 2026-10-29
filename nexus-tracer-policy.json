@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "product": "NEXUS-TRACER",
+  "policy_id": "nexus-tracer-c06",
+  "approved_compositions": [
+    "460bc22125a604941e10669af6deac2a1074d7fd49325385e67b92c292d88e88"
+  ]
+}
