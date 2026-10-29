@@ -8,6 +8,9 @@ on:
   release:
     types: [published, edited, deleted, unpublished]
   workflow_dispatch:
+  schedule:
+    # Refresh the NEXUS policy's publication window; the allowlist stays reviewed.
+    - cron: '17 */6 * * *'
 
 permissions:
   contents: read
@@ -41,6 +44,8 @@ jobs:
       - uses: actions/checkout@v6
       - name: Validate warning and blocking policy
         run: python3 scripts/validate_policy.py
+      - name: Validate NEXUS composition policy
+        run: python3 scripts/generate_nexus_policy.py --check
       - name: Test release synchronization
         run: python3 -m unittest discover -s tests -v
 
@@ -48,6 +53,7 @@ jobs:
     needs: validate
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
       contents: write
       pages: write
@@ -62,6 +68,7 @@ jobs:
       - name: Test the main revision being published
         run: |
           python3 scripts/validate_policy.py
+          python3 scripts/generate_nexus_policy.py --check
           python3 -m unittest discover -s tests -v
       - name: Check Pages configuration
         uses: actions/configure-pages@v5
@@ -88,9 +95,20 @@ jobs:
         run: |
           mkdir -p _site
           cp version.json version.schema.json executables.json index.html _site/
+      - name: Generate current NEXUS policy from main
+        run: |
+          POLICY_MAIN_SHA=$(git ls-remote origin refs/heads/main | cut -f1)
+          test -n "$POLICY_MAIN_SHA"
+          test "$POLICY_MAIN_SHA" = "$(git rev-parse HEAD)"
+          python3 scripts/generate_nexus_policy.py --output _site/nexus-tracer.json
       - uses: actions/upload-pages-artifact@v4
         with:
           path: _site
+      - name: Refuse publishing a superseded policy revision
+        run: |
+          POLICY_MAIN_SHA=$(git ls-remote origin refs/heads/main | cut -f1)
+          test -n "$POLICY_MAIN_SHA"
+          test "$POLICY_MAIN_SHA" = "$(git rev-parse HEAD)"
       - name: Publish GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
