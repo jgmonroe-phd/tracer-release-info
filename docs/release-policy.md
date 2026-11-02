@@ -2,7 +2,20 @@
 
 `version.json` is the public policy consumed by new enforcement-capable TRACER clients. Existing clients that only show advisory warnings will still behave that way. Updating this repository cannot rewrite an already distributed executable, force it online, or remove its local files. Replace old binaries through managed distribution. If GenAI service authorization supports minimum client versions, enforce that separately on the server; a self-reported version is not proof of an approved executable.
 
-## Current policy
+## Version compatibility repair
+
+The publishing code now understands the current TRACER client version contract:
+ordinary three-part versions and year.major.minor.patch releases. Historical
+year.series.patch compares as year.0.series.patch, so 2026.1.2.6 follows
+2026.9.23. Labels remain unchanged. See [compatibility and deployment checks](version-compatibility.md).
+
+This code change does not approve new policy values. The checked-in policy still
+has minimum_supported_version2026.9.23 and blocked_below_version2026.9.14;
+validation correctly refuses this disagreement. A maintainer must select the
+intended floor and use it consistently before publication. Verify older client
+compatibility before publishing four-part values to the shared endpoint.
+
+## Previous verified recommendation (historical)
 
 | Field | Value | Meaning |
 | --- | --- | --- |
@@ -18,9 +31,19 @@
 
 Other retained fields: `product` must be `TRACER`; `release_date` is the latest release's date; `channel` is `beta` or `stable`; `message` is an optional public release note. `stale_after_days` remains solely for legacy readers and informational display. It does not grant new clients an offline grace period.
 
-The recommended public release is **v2026.0.9.23**, whose application version is **2026.9.23**. The catalog uses an exact mapping in `release-version-aliases.json`; `version.json.latest_version` and `warning_below_version` use the three-component application version. Public display labels and original download URLs can contain four components, but client policy fields cannot. Supported older builds now receive an update warning; the blocking floor remains **0.8.8**. Versions below that floor remain blocked. Advisory-only legacy binaries retain their own update notification behavior; publishing this policy cannot add a warning dialog to an executable that does not implement one.
+The previously verified public release was **v2026.0.9.23**, whose application
+version is **2026.9.23**. That explicit alias is retained. The table records its
+historical policy, not the current invalid proposal or a decision to restore it.
+Advisory-only legacy binaries retain their own behavior; publishing a policy
+cannot add enforcement or a new version parser to an already distributed executable.
 
-Versions are numeric `major.minor.patch` values, never string-sorted. Floors are exclusive: exactly equal to a floor passes that floor. Blocking always wins over warnings. A version equal to `warning_below_version` is allowed without the retirement warning unless explicitly blocked. An update may still be available above it.
+Versions use canonical numeric ordering, never string sorting. Both strict
+`major.minor.patch` and `[v]year.major.minor.patch` are accepted, with a 48-character
+limit and no leading zeroes or prerelease/local suffixes. A four-digit year in a
+three-part version inserts major zero for comparison only. Equivalent spellings
+are the same floor or exact block; duplicate canonical blocks are rejected.
+Floors are exclusive: exactly equal passes that floor. Blocking always wins over
+warnings. An update may still be available above the warning floor.
 
 The validator requires `blocked_below_version <= warning_below_version <= latest_version`, matching compatibility/blocking floors, and unique exact blocks. An exact block may include the latest release for emergency withdrawal, even if no safe replacement exists yet. Raising all floors beyond the advertised release is rejected. The JSON Schema describes the shape; `scripts/validate_policy.py` also checks these cross-field rules. Policy must be UTF-8 JSON of at most 64 KiB, without duplicate keys at any depth or non-finite numbers. Validation and release synchronization use the same strict raw loader; synchronization also checks serialized size before writing any output.
 

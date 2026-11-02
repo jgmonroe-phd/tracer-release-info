@@ -12,30 +12,30 @@
     },
     "latest_version": {
       "type": "string",
-      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$",
-      "maxLength": 32
+      "pattern": "^(?:(0|[1-9][0-9]*)(\\.(0|[1-9][0-9]*)){2}|v?[1-9][0-9]{3}(\\.(0|[1-9][0-9]*)){3})(?![\\s\\S])",
+      "maxLength": 48
     },
     "minimum_supported_version": {
       "type": "string",
-      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$",
-      "maxLength": 32
+      "pattern": "^(?:(0|[1-9][0-9]*)(\\.(0|[1-9][0-9]*)){2}|v?[1-9][0-9]{3}(\\.(0|[1-9][0-9]*)){3})(?![\\s\\S])",
+      "maxLength": 48
     },
     "warning_below_version": {
       "type": "string",
-      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$",
-      "maxLength": 32
+      "pattern": "^(?:(0|[1-9][0-9]*)(\\.(0|[1-9][0-9]*)){2}|v?[1-9][0-9]{3}(\\.(0|[1-9][0-9]*)){3})(?![\\s\\S])",
+      "maxLength": 48
     },
     "blocked_below_version": {
       "type": "string",
-      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$",
-      "maxLength": 32
+      "pattern": "^(?:(0|[1-9][0-9]*)(\\.(0|[1-9][0-9]*)){2}|v?[1-9][0-9]{3}(\\.(0|[1-9][0-9]*)){3})(?![\\s\\S])",
+      "maxLength": 48
     },
     "blocked_versions": {
       "type": "array",
       "items": {
         "type": "string",
-        "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$",
-        "maxLength": 32
+        "pattern": "^(?:(0|[1-9][0-9]*)(\\.(0|[1-9][0-9]*)){2}|v?[1-9][0-9]{3}(\\.(0|[1-9][0-9]*)){3})(?![\\s\\S])",
+        "maxLength": 48
       },
       "maxItems": 100,
       "uniqueItems": true
@@ -100,5 +100,5 @@
     "usage_endpoint"
   ],
   "additionalProperties": true,
-  "$comment": "scripts/validate_policy.py also enforces numeric ordering, floor equality, plain messages, and HTTPS endpoint restrictions."
+  "$comment": "scripts/validate_policy.py also enforces canonical year-major ordering, canonical floor equality and blocked-version uniqueness, plain messages, and HTTPS endpoint restrictions. Legacy year.series.patch compares as year.0.series.patch; labels are preserved."
 }

@@ -14,9 +14,9 @@ import sys
 from urllib.parse import quote, unquote, urlsplit
 
 try:
-    from validate_policy import MAX_POLICY_BYTES, load_policy, validate_policy
+    from validate_policy import MAX_POLICY_BYTES, load_policy, validate_policy, version as policy_version
 except ModuleNotFoundError:
-    from scripts.validate_policy import MAX_POLICY_BYTES, load_policy, validate_policy
+    from scripts.validate_policy import MAX_POLICY_BYTES, load_policy, validate_policy, version as policy_version
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -35,9 +35,7 @@ DOWNLOADS_END = "<!-- downloads:end -->"
 
 
 def parse_version(value):
-    if not isinstance(value, str) or not VERSION.fullmatch(value):
-        raise ValueError(f"invalid version {value!r}; expected major.minor.patch")
-    return tuple(int(part) for part in value.split("."))
+    return policy_version(value)
 
 
 def validate_version_aliases(aliases):
@@ -201,12 +199,12 @@ def build_metadata(manifest, releases, repository, platform_rules=None, *, diagn
         is_alias = isinstance(tag, str) and tag in version_aliases
         if is_alias:
             version = version_aliases[tag]
-        if not isinstance(version, str) or not VERSION.fullmatch(version):
+        if not is_alias and (not isinstance(version, str) or not VERSION.fullmatch(version)):
             if diagnostics is not None:
                 diagnostics.append(
                     f"Skipped published release {tag!r}: unsupported tag. Standard tags use "
                     "major.minor.patch, optionally prefixed with v. To keep a four-part public "
-                    "tag, add its exact mapping to the application's three-part version in "
+                    "tag, add its exact mapping to the application's verified version in "
                     "release-version-aliases.json after verifying the executable's embedded version. "
                     "Unlisted four-part tags are not converted automatically."
                 )
@@ -215,7 +213,7 @@ def build_metadata(manifest, releases, repository, platform_rules=None, *, diagn
         if not isinstance(prerelease, bool):
             raise ValueError(f"release {tag!r} prerelease must be a boolean")
         release_channel = "beta" if prerelease else "stable"
-        identity = version, release_channel
+        identity = parse_version(version), release_channel
         previous_tag = published_versions.get(identity)
         if previous_tag is not None and previous_tag != tag:
             raise ValueError(
@@ -301,7 +299,7 @@ def render_downloads(readme, manifest, catalog, repository):
         raise ValueError("README downloads:end marker must follow downloads:start")
     recommended = next((
         item for item in catalog["releases"]
-        if item["version"] == manifest["latest_version"]
+        if parse_version(item["version"]) == parse_version(manifest["latest_version"])
         and (manifest["channel"] == "beta" or item["channel"] == "stable")
     ), None)
     version = manifest["latest_version"]
