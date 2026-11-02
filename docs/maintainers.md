@@ -4,6 +4,11 @@ For download and start-up instructions, see the [TRACER downloads README](../REA
 
 This document covers publishing TRACER releases and maintaining the update service.
 
+The [legacy compatibility protections](legacy-compatibility.md) preserve the
+restored production policy while NEXUS development continues. All automatic
+catalog synchronization is now catalog-only; recommendation and access-policy
+changes require a separate reviewed update to the approved baseline.
+
 TRACER source code is maintained in a private repository on an internal server. Public executables belong in this repository's [GitHub Releases](https://github.com/jgmonroe-phd/tracer-release-info/releases), attached to a versioned release. Keep the binary files out of the Git file history.
 
 Installed copies of TRACER continue to query the same public `version.json` URL. A separate `executables.json` lists the available release assets. The version manifest now uses schema 2 with additive warning, blocking, and optional usage fields. Older clients keep their original advisory behavior; they do not acquire enforcement from this repository alone.
@@ -66,11 +71,16 @@ For this build, follow the [v2026.0.9.23 release guide](release-2026.9.23.md), i
 3. Attach all intended executable/package files to the draft. Use versioned, platform-specific names. Keep private source code and internal information out of public release notes and packaged files.
 4. Add or update the asset rules in `download-platforms.json` for verified operating systems and architectures. Commit those rules to `main` before publishing. ZIP packages are the preferred download when the same platform also has a standalone `.exe`.
 5. Publish the release only after its uploads have completed.
-6. The **Publish release catalog** workflow refreshes `executables.json`, advances `latest_version` and `release_date` when an eligible higher version exists, refreshes the download section in `README.md`, commits changed files, and publishes GitHub Pages.
+6. The **Publish release catalog** workflow refreshes `executables.json` and the download section in `README.md`, commits those catalog changes, and publishes GitHub Pages. It preserves every byte of the approved `version.json`; a new release does not automatically change the recommendation.
 7. Verify the workflow succeeded and the public JSON endpoints reflect the release.
 8. Edit warning/blocking fields deliberately under the [policy rollout procedure](release-policy.md), validate, and merge through review. Keep `minimum_supported_version` equal to `blocked_below_version`. Release synchronization preserves all policy, messages, and usage endpoint fields; it does not automatically retire a version.
 
-A `beta` manifest can advance to either a prerelease or stable build. A `stable` manifest advances only to stable builds. The catalog includes both channels, sorted by numeric version. Draft releases and releases without an uploaded supported attachment cannot advance the manifest. The script does not automatically lower `latest_version`, and it retains the existing date when the version is unchanged.
+The catalog includes both beta and stable releases, sorted by numeric version.
+Recommend a qualified release through a separate compatibility-reviewed policy
+change. The standalone sync tool retains its historical promotion mode when
+`--catalog-only` is omitted, but publication will reject any resulting policy
+that differs from the approved baseline. Never use that mode during a NEXUS
+refresh. Draft releases and releases without usable attachments are not eligible.
 
 Attach every required platform build before publishing: the script requires at least one supported attachment and cannot infer which platforms are mandatory. The current version must be available for all users who receive its update warning.
 
@@ -106,6 +116,7 @@ Run the focused synchronization tests with Python 3.10 or newer:
 
 ```bash
 python3 scripts/validate_policy.py
+python3 scripts/validate_legacy_policy.py
 python3 -m unittest discover -s tests -v
 ```
 
@@ -114,7 +125,7 @@ To preview a sync locally with GitHub CLI authentication:
 ```bash
 set -o pipefail
 gh api --paginate --slurp 'repos/jgmonroe-phd/tracer-release-info/releases?per_page=100' | jq 'add // []' > /tmp/tracer-releases.json
-python3 scripts/sync_releases.py --releases /tmp/tracer-releases.json --repository jgmonroe-phd/tracer-release-info
+python3 scripts/sync_releases.py --releases /tmp/tracer-releases.json --repository jgmonroe-phd/tracer-release-info --catalog-only
 git diff -- version.json executables.json README.md
 ```
 
@@ -176,7 +187,10 @@ Keep the Git repository small by storing executables as Release assets. GitHub c
 
 ## Quick reference
 
-For a routine release, publish and qualify binaries before advertising a higher `latest_version`. Catalog synchronization updates that field and `release_date` from actual assets, preserving policy.
+For a routine release, publish and qualify binaries before proposing a higher
+`latest_version`. Catalog synchronization discovers assets but preserves the
+approved policy. Review the recommendation, date, client compatibility and
+baseline together before changing what installed applications receive.
 
 For retirement, first raise `warning_below_version` and set `warning_message`; after the warning period, raise `blocked_below_version` and matching `minimum_supported_version`, then set `blocked_message`. Normally keep the recommended version permitted. Exact known-bad builds can go in `blocked_versions`; blocking the current release is allowed for emergency withdrawal and may leave users unable to run until a replacement is available.
 

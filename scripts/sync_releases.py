@@ -161,12 +161,13 @@ def asset_file(asset, repository, tag, platform_rules):
 
 
 def build_metadata(manifest, releases, repository, platform_rules=None, *, diagnostics=None,
-                   version_aliases=None):
+                   version_aliases=None, catalog_only=False):
     """Return new documents, optionally collecting reasons published releases were skipped.
 
     The two-value return is unchanged. Explicit aliases separate public tags
     from application versions. Callers that need diagnostics can supply a list;
-    input documents are never mutated.
+    input documents are never mutated. Catalog-only discovery does not promote
+    the legacy policy's recommendation or release date.
     """
     if not isinstance(releases, list):
         raise ValueError("--releases must contain a JSON list of release objects")
@@ -260,7 +261,7 @@ def build_metadata(manifest, releases, repository, platform_rules=None, *, diagn
     ))
     updated = deepcopy(manifest)
     eligible = [item for item in catalog if channel == "beta" or item["channel"] == "stable"]
-    if eligible and parse_version(eligible[0]["version"]) > current:
+    if not catalog_only and eligible and parse_version(eligible[0]["version"]) > current:
         updated["latest_version"] = eligible[0]["version"]
         updated["release_date"] = eligible[0]["release_date"]
     validate_policy(updated)
@@ -344,6 +345,8 @@ def main(argv=None):
     parser.add_argument("--aliases", type=Path,
                         help="exact public-tag/application-version mappings (default: release-version-aliases.json if present)")
     parser.add_argument("--readme", type=Path, default=ROOT / "README.md")
+    parser.add_argument("--catalog-only", action="store_true",
+                        help="Refresh downloads while preserving every byte of version.json")
     args = parser.parse_args(argv)
     try:
         if len({path.resolve() for path in (args.manifest, args.catalog, args.readme)}) != 3:
@@ -360,20 +363,21 @@ def main(argv=None):
         diagnostics = []
         updated, catalog = build_metadata(
             manifest, releases, args.repository, platform_rules, diagnostics=diagnostics,
-            version_aliases=version_aliases,
+            version_aliases=version_aliases, catalog_only=args.catalog_only,
         )
         for message in diagnostics:
             report_warning(message)
         updated_readme = render_downloads(readme, updated, catalog, args.repository)
         # Validate and serialize all documents before touching any output.
-        manifest_text = json.dumps(updated, indent=2, ensure_ascii=False) + "\n"
-        if len(manifest_text.encode("utf-8")) > MAX_POLICY_BYTES:
-            raise ValueError("serialized version.json exceeds 64 KiB")
+        if not args.catalog_only:
+            manifest_text = json.dumps(updated, indent=2, ensure_ascii=False) + "\n"
+            if len(manifest_text.encode("utf-8")) > MAX_POLICY_BYTES:
+                raise ValueError("serialized version.json exceeds 64 KiB")
         catalog_text = json.dumps(catalog, indent=2, ensure_ascii=False) + "\n"
         args.catalog.write_text(catalog_text, encoding="utf-8")
         if updated_readme != readme:
             args.readme.write_bytes(updated_readme.encode("utf-8"))
-        if updated != manifest:
+        if not args.catalog_only and updated != manifest:
             args.manifest.write_text(manifest_text, encoding="utf-8")
     except (OSError, ValueError, RecursionError) as error:
         print(f"sync_releases: {error}", file=sys.stderr)

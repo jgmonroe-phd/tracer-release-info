@@ -40,14 +40,31 @@ jobs:
   validate:
     if: github.event_name != 'release'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: read
     steps:
       - uses: actions/checkout@v6
       - name: Validate warning and blocking policy
         run: python3 scripts/validate_policy.py
+      - name: Preserve approved legacy TRACER policy
+        run: python3 scripts/validate_legacy_policy.py
       - name: Validate NEXUS composition policy
         run: python3 scripts/generate_nexus_policy.py --check
       - name: Test release synchronization
         run: python3 -m unittest discover -s tests -v
+      - name: Require validated workflow publishing
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if ! TRACER_PAGES_BUILD_TYPE=$(gh api "repos/$GITHUB_REPOSITORY/pages" --jq '.build_type'); then
+            echo '::error::Cannot verify Pages configuration. The repository owner must grant Pages read access and confirm Source is GitHub Actions.'
+            exit 1
+          fi
+          if [ "$TRACER_PAGES_BUILD_TYPE" != 'workflow' ]; then
+            echo '::error::Pages can bypass these checks. The repository owner must set Settings > Pages > Source to GitHub Actions.'
+            exit 1
+          fi
 
   publish:
     needs: validate
@@ -68,11 +85,21 @@ jobs:
       - name: Test the main revision being published
         run: |
           python3 scripts/validate_policy.py
+          python3 scripts/validate_legacy_policy.py
           python3 scripts/generate_nexus_policy.py --check
           python3 -m unittest discover -s tests -v
       - name: Check Pages configuration
         uses: actions/configure-pages@v5
-      - name: Read all releases and update the manifests
+      - name: Recheck Pages publishing mode
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TRACER_PAGES_BUILD_TYPE=$(gh api "repos/$GITHUB_REPOSITORY/pages" --jq '.build_type')
+          if [ "$TRACER_PAGES_BUILD_TYPE" != 'workflow' ]; then
+            echo '::error::Pages Source must remain GitHub Actions; refusing deployment.'
+            exit 1
+          fi
+      - name: Refresh downloads without changing legacy policy
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -81,26 +108,26 @@ jobs:
             | jq 'add // []' > "$RUNNER_TEMP/tracer-releases.json"
           python3 scripts/sync_releases.py \
             --releases "$RUNNER_TEMP/tracer-releases.json" \
-            --repository "$GITHUB_REPOSITORY"
+            --repository "$GITHUB_REPOSITORY" \
+            --catalog-only
+          python3 scripts/validate_legacy_policy.py
       - name: Commit changed metadata
         run: |
-          git add version.json executables.json README.md
+          git add executables.json README.md
           if ! git diff --cached --quiet; then
             git config user.name 'github-actions[bot]'
             git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
             git commit -m 'Update executable release catalog'
             git push origin HEAD:main
           fi
-      - name: Prepare public files
-        run: |
-          mkdir -p _site
-          cp version.json version.schema.json executables.json index.html _site/
-      - name: Generate current NEXUS policy from main
+      - name: Stage protected legacy files and current NEXUS policy
         run: |
           POLICY_MAIN_SHA=$(git ls-remote origin refs/heads/main | cut -f1)
           test -n "$POLICY_MAIN_SHA"
           test "$POLICY_MAIN_SHA" = "$(git rev-parse HEAD)"
-          python3 scripts/generate_nexus_policy.py --output _site/nexus-tracer.json
+          python3 scripts/prepare_site.py --output _site
+      - name: Validate the exact staged publication
+        run: python3 scripts/prepare_site.py --output _site --check
       - uses: actions/upload-pages-artifact@v4
         with:
           path: _site
@@ -109,6 +136,7 @@ jobs:
           POLICY_MAIN_SHA=$(git ls-remote origin refs/heads/main | cut -f1)
           test -n "$POLICY_MAIN_SHA"
           test "$POLICY_MAIN_SHA" = "$(git rev-parse HEAD)"
+          python3 scripts/prepare_site.py --output _site --check
       - name: Publish GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4

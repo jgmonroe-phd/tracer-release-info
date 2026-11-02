@@ -1,5 +1,10 @@
 # Warning and blocking policy
 
+The current publication is protected by an explicit
+[legacy compatibility baseline](legacy-compatibility.md). Routine NEXUS refreshes
+and release discovery cannot change it. The procedures below describe deliberate
+policy changes; they require separate compatibility review and baseline updates.
+
 `version.json` is the public policy consumed by new enforcement-capable TRACER clients. Existing clients that only show advisory warnings will still behave that way. Updating this repository cannot rewrite an already distributed executable, force it online, or remove its local files. Replace old binaries through managed distribution. If GenAI service authorization supports minimum client versions, enforce that separately on the server; a self-reported version is not proof of an approved executable.
 
 ## Current policy

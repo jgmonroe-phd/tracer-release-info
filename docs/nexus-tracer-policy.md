@@ -12,6 +12,11 @@ the **Publish release catalog** workflow successfully deploys Pages. A pull requ
 does not publish it. The existing application's `version.json` contract, download
 page, executable catalog, and release workflow remain in service.
 
+The [legacy compatibility boundary](legacy-compatibility.md) freezes the approved
+`version.json` bytes. NEXUS timestamp renewal cannot promote a legacy release,
+retire an original TRACER version or change its policy messages. Catalog discovery
+uses `--catalog-only`; the complete staged publication is checked before upload.
+
 ## Approval source and published document
 
 Maintainers review `nexus-tracer-policy.json`. It contains the product, policy ID,
