@@ -9,11 +9,13 @@ ordinary three-part versions and year.major.minor.patch releases. Historical
 year.series.patch compares as year.0.series.patch, so 2026.1.2.6 follows
 2026.9.23. Labels remain unchanged. See [compatibility and deployment checks](version-compatibility.md).
 
-This code change does not approve new policy values. The checked-in policy still
-has minimum_supported_version2026.9.23 and blocked_below_version2026.9.14;
-validation correctly refuses this disagreement. A maintainer must select the
-intended floor and use it consistently before publication. Verify older client
-compatibility before publishing four-part values to the shared endpoint.
+The approved policy uses `2026.9.14` for both `minimum_supported_version` and
+`blocked_below_version`, with `warning_below_version` at `2026.9.23`.
+Versions below `2026.9.14` are blocked; versions from `2026.9.14` up to but
+excluding `2026.9.23` warn and may continue, subject to other application checks.
+At `2026.9.23` and above, these floors produce neither a block nor a warning.
+This resolves the previous floor disagreement. It does not establish deployment
+or older client compatibility with four-part values on the shared endpoint.
 
 ## Previous verified recommendation (historical)
 
@@ -33,7 +35,7 @@ Other retained fields: `product` must be `TRACER`; `release_date` is the latest 
 
 The previously verified public release was **v2026.0.9.23**, whose application
 version is **2026.9.23**. That explicit alias is retained. The table records its
-historical policy, not the current invalid proposal or a decision to restore it.
+historical policy, not the current approved floors or a decision to restore it.
 Advisory-only legacy binaries retain their own behavior; publishing a policy
 cannot add enforcement or a new version parser to an already distributed executable.
 

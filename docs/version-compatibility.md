@@ -36,27 +36,30 @@ of a binary from a source checkout. The existing `v2026.0.9.23` to `2026.9.23`
 mapping remains unchanged. Canonically identical versions in the same channel
 are ambiguous and rejected, even if their strings differ.
 
-## Publishing remains blocked pending decisions
+## Approved floors and remaining deployment checks
 
-This repair leaves `version.json`, release aliases, platform mappings and NEXUS
-composition approvals unchanged. The current minimum-supported floor is
-2026.9.23 and the blocking floor is 2026.9.14. The current application rejects
-that inconsistency, so the publisher must keep rejecting it too. These choices
-have different effects:
+The approved policy sets both `minimum_supported_version` and
+`blocked_below_version` to `2026.9.14`, keeping `warning_below_version` at
+`2026.9.23`. This changes the former inconsistent minimum-supported value from
+`2026.9.23` to match the existing blocking floor. The recommendation remains
+`2026.1.2.6`; release aliases, platform mappings and NEXUS composition approvals
+are unchanged.
 
-- With both floors at 2026.9.14 and warning at 2026.9.23, versions in between warn
-  but are not blocked by the version floor.
-- With both floors at 2026.9.23, versions below 2026.9.23 are blocked by the floor.
+| Installed version | Result from these floors |
+| --- | --- |
+| Below 2026.9.14 | Block |
+| 2026.9.14 through versions below 2026.9.23 | Warn; permit continued use |
+| 2026.9.23 and above, including 2026.1.2.6 | No floor-based warning or block |
 
-Other explicit blocks and application checks still apply. Neither choice is made
-by this code change. The existing `test_current_policy_valid` deliberately remains
-unchanged and fails until an approved consistent policy is committed. All other
-compatibility tests should pass. Do not remove that test or skip workflow validation.
+Other explicit blocks and application checks still apply. The existing
+`test_current_policy_valid` remains unchanged and now accepts the consistent
+checked-in policy. Do not remove that test or skip workflow validation.
 
 Before publication:
 
-1. Choose a consistent floor and confirm the intended recommendation, channel and
-   exact release-to-executable identity. Review all version-bearing fields.
+1. The floor decision above is complete. Confirm the intended recommendation,
+   channel and exact release-to-executable identity. Review all version-bearing
+   fields; an approved floor does not verify a downloadable binary.
 2. Verify the client generations that consume this endpoint. Current source
    supports the contract above; older three-part-only binaries will still reject
    four-part values. Qualify their migration or keep a compatible release policy

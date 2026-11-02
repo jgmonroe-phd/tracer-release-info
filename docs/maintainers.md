@@ -29,9 +29,11 @@ TRACER checks `https://jgmonroe-phd.github.io/tracer-release-info/version.json`.
 See [release policy and staged retirement](release-policy.md) and the
 [version compatibility repair](version-compatibility.md). The previously verified
 release **v2026.0.9.23** retains its explicit application alias **2026.9.23**.
-Current source also uses four-part application versions. The current policy's
-conflicting minimum/blocking floors still require an operator decision; this
-code repair does not change floors, approve a new release alias or publish a site.
+Current source also uses four-part application versions. The approved policy sets
+both minimum-supported and blocking floors to **2026.9.14**, with warnings below
+**2026.9.23**. Versions in that interval may continue subject to other application
+checks. This resolves the floor inconsistency; deployment still requires the
+client compatibility and release identity checks in the compatibility guide.
 
 See [usage-service deployment](usage-service.md) to enable counts. GitHub Pages only serves static files; it cannot increment counters from a manifest fetch. The supplied separate service records launches and estimates distinct installations within a retention window. It does not identify unique people. Do not put a GitHub write token, administrator token, or user identity in the client or manifest.
 
