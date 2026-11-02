@@ -11,6 +11,7 @@ from urllib.parse import urlsplit
 
 
 VERSION = re.compile(r"(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\Z")
+YEAR_VERSION = re.compile(r"v?[1-9][0-9]{3}(?:\.(?:0|[1-9][0-9]*)){3}\Z")
 ROOT = Path(__file__).resolve().parents[1]
 MAX_POLICY_BYTES = 64 * 1024
 
@@ -42,9 +43,19 @@ def load_policy(path):
 
 
 def version(value):
-    if not isinstance(value, str) or len(value) > 32 or not VERSION.fullmatch(value):
-        raise ValueError("versions must be numeric major.minor.patch, at most 32 characters")
-    return tuple(int(part) for part in value.split("."))
+    """Match TRACER's current stable release ordering without changing labels.
+
+    Historical year.series.patch belongs to major zero. Four-part year releases
+    retain their major/minor/patch values; ordinary three-part versions remain
+    ordinary versions. Public tags still need separately reviewed mappings.
+    """
+    if (not isinstance(value, str) or len(value) > 48
+            or not (VERSION.fullmatch(value) or YEAR_VERSION.fullmatch(value))):
+        raise ValueError("versions must use major.minor.patch or [v]year.major.minor.patch, at most 48 characters")
+    parts = tuple(int(part) for part in value.removeprefix("v").split("."))
+    if len(parts) == 3 and 1000 <= parts[0] <= 9999:
+        return (parts[0], 0, parts[1], parts[2])
+    return parts
 
 
 def validate_policy(policy):
@@ -59,7 +70,7 @@ def validate_policy(policy):
     blocked = version(policy.get("blocked_below_version"))
     if not blocked <= warning <= latest:
         raise ValueError("require blocked_below_version <= warning_below_version <= latest_version")
-    if policy.get("minimum_supported_version") != policy["blocked_below_version"]:
+    if version(policy.get("minimum_supported_version")) != blocked:
         raise ValueError("minimum_supported_version must mirror blocked_below_version")
     blocked_versions = policy.get("blocked_versions")
     if not isinstance(blocked_versions, list) or len(blocked_versions) > 100:
