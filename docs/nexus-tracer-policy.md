@@ -20,9 +20,10 @@ uses `--catalog-only`; the complete staged publication is checked before upload.
 ## Approval source and published document
 
 Maintainers review `nexus-tracer-policy.json`. It contains the product, policy ID,
-and exact approved composition hashes. The initial entry is the C06 development
-composition, for bounded live qualification and comparison. It is not a declaration
-of production acceptance, full capability parity, or native document-output quality.
+and exact approved composition hashes. The entries cover the C06 and C07 development
+compositions for bounded live qualification and comparison. This approval is not a
+declaration of production acceptance, full capability parity, or native
+document-output quality.
 
 ```json
 {
@@ -30,10 +31,19 @@ of production acceptance, full capability parity, or native document-output qual
   "product": "NEXUS-TRACER",
   "policy_id": "nexus-tracer-c06",
   "approved_compositions": [
-    "460bc22125a604941e10669af6deac2a1074d7fd49325385e67b92c292d88e88"
+    "460bc22125a604941e10669af6deac2a1074d7fd49325385e67b92c292d88e88",
+    "46514b0859ab75743fd5d2cd15281dd8777c2570fbea81b2bbf99d725cd8da73"
   ]
 }
 ```
+
+The C07 entry identifies the reviewed diagnostic/runtime build, including its
+narrow service response-model alias handling. Its installed composition matched
+the reviewed identifier and passed offline checks before this entry was added.
+Live readiness and document acceptance remain separate checks. C06 remains
+approved, and the policy ID stays `nexus-tracer-c06` so existing configurations
+continue to use the same policy. Only the composition allowlist is extended;
+the original TRACER `version.json` remains at its approved compatibility baseline.
 
 The publishing workflow adds `issued_at` and `expires_at` when it generates
 `_site/nexus-tracer.json`. Issue time is five minutes before generation to tolerate
