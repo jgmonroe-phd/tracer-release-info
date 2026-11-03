@@ -4,6 +4,7 @@
   "policy_id": "nexus-tracer-c06",
   "approved_compositions": [
     "460bc22125a604941e10669af6deac2a1074d7fd49325385e67b92c292d88e88",
-    "46514b0859ab75743fd5d2cd15281dd8777c2570fbea81b2bbf99d725cd8da73"
+    "46514b0859ab75743fd5d2cd15281dd8777c2570fbea81b2bbf99d725cd8da73",
+    "c56a2c9fa25343fd19d701b5cdfb62c1472cf06b2ee512ef021df6ad0f5d9009"
   ]
 }
