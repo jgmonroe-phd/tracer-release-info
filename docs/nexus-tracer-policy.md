@@ -20,7 +20,7 @@ uses `--catalog-only`; the complete staged publication is checked before upload.
 ## Approval source and published document
 
 Maintainers review `nexus-tracer-policy.json`. It contains the product, policy ID,
-and exact approved composition hashes. The entries cover the C06, C07 and C08
+and exact approved composition hashes. The entries cover the C06, C07, C08 and C09
 development compositions for controlled live qualification and comparison. This approval is not a
 declaration of production acceptance, full capability parity, or native
 document-output quality.
@@ -33,7 +33,8 @@ document-output quality.
   "approved_compositions": [
     "460bc22125a604941e10669af6deac2a1074d7fd49325385e67b92c292d88e88",
     "46514b0859ab75743fd5d2cd15281dd8777c2570fbea81b2bbf99d725cd8da73",
-    "c56a2c9fa25343fd19d701b5cdfb62c1472cf06b2ee512ef021df6ad0f5d9009"
+    "c56a2c9fa25343fd19d701b5cdfb62c1472cf06b2ee512ef021df6ad0f5d9009",
+    "01b655e7d5fe034eb4993d1ffff98200d033d15e55edb0c3811e1eb05b8d658e"
   ]
 }
 ```
@@ -50,7 +51,11 @@ Renewal requests are additional to document-review request limits. This entry
 does not attest a completed internal review or capability parity with the
 original application.
 
-C06 and C07 remain approved, and the policy ID stays `nexus-tracer-c06` so existing configurations
+The C09 entry is an additional controlled development composition for bounded
+qualification and comparison. It does not establish production acceptance,
+a completed document review, or full capability parity.
+
+C06, C07 and C08 remain approved, and the policy ID stays `nexus-tracer-c06` so existing configurations
 continue to use the same policy. Only the composition allowlist is extended;
 the original TRACER `version.json` remains at its approved compatibility baseline.
 
